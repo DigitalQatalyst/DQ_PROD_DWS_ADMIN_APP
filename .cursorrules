@@ -1,0 +1,124 @@
+# Cursor Project Rules
+# These rules control how Cursor organizes generated files
+
+persistence:
+  - description: >
+      **CRITICAL**: Always save temporary or AI-generated Markdown outputs into /workspace, NOT /docs.
+      
+      Documents in /workspace (temporary/WIP):
+      - Task summaries and planning documents
+      - Debug logs and troubleshooting notes
+      - Implementation plans and checklists (while in progress)
+      - Any document that is a work-in-progress or temporary reference
+      - Documents created during active development/debugging
+      
+      Documents in /docs (permanent):
+      - Only move to /docs when implementation is COMPLETE and VALIDATED
+      - Finalized guides, references, and architecture docs
+      - Never create new docs in /docs during active development
+      
+      File placement rules:
+      1. If creating a NEW planning/implementation doc → put in /workspace
+      2. If updating EXISTING docs (SETUP.md, guides, etc.) → edit files in /docs
+      3. If doc is a temporary reference → /workspace
+      4. If doc is final documentation → /docs
+      
+      Never leave .md or .tmp.md files in /src, /api, /tests, or /database.
+      Exclude /workspace from version control.
+
+documentation:
+  - description: >
+      Documentation follows a hierarchical structure in /docs with strict accuracy requirements.
+      
+      Structure:
+        - /docs/ (root) - ONLY these 3 files:
+          - README.md - Main navigation
+          - SETUP.md - Getting started guide
+          - CHANGELOG.md - Implementation history
+        
+        Subdirectories (all other docs organized here):
+        - /docs/architecture/ - System architecture and design patterns
+        - /docs/iam/ - Identity, Authentication, Authorization, RBAC (complete IAM docs)
+        - /docs/database/ - Database schema and migration docs
+        - /docs/guides/ - How-to guides and troubleshooting (non-IAM only)
+        - /docs/configuration/ - Configuration references (non-IAM only)
+        - /docs/archive/ - Historical/duplicate implementation docs
+        
+        Rule: If it's not README, SETUP, or CHANGELOG in /docs root, it must be in a subdirectory.
+      
+      CRITICAL SCHEMA MAPPING RULES:
+        
+        1. Database Field Naming:
+           - Database uses: "customer_type" (NOT "user_segment")
+           - Database values: staff, partner, enterprise, advisor
+           - Frontend maps to: internal, partner, customer, advisor
+           - Mapping happens in: src/lib/federatedAuthSupabase.ts, src/context/AuthContext.tsx
+        
+        2. Role Naming:
+           - Database allows: admin, approver, creator, contributor, viewer
+           - Frontend normalizes to: admin, editor, approver, viewer
+           - Mapping: creator + contributor → editor in frontend
+        
+        3. Authoritative References:
+           - ALWAYS use docs/database/SCHEMA_REFERENCE.md as the source of truth for schema
+           - ALWAYS use docs/iam/PERMISSIONS_REFERENCE.md for RBAC rules
+           - NEVER document "user_segment" as a database field
+           - ALWAYS document the frontend mapping layer when discussing authorization
+      
+      Documentation Change Control:
+        
+        1. **Decision Tree for New Documents**:
+           - Is this a WIP/planning document? → Create in /workspace
+           - Is this updating existing configuration? → Edit file in /docs, don't create new
+           - Is this a new guide/reference? → Create in /workspace, move to /docs when complete
+           - Is this fixing an existing doc? → Edit in-place, never create duplicate
+        
+        2. **When to UPDATE vs CREATE**:
+           - Configuration change? → Update existing docs/configuration/* files
+           - Schema change? → Update SCHEMA_REFERENCE.md (don't create new schema doc)
+           - Permission change? → Update PERMISSIONS_REFERENCE.md (don't create new)
+           - New implementation in progress? → Create in /workspace as planning doc
+           - Implementation complete? → Archive planning doc, update permanent docs
+        
+        3. **Updating Existing Documentation**:
+           Before updating any doc in /docs:
+           - Verify schema against database/latest_db_*.sql files
+           - Verify permissions against src/auth/ability.ts
+           - Check CHANGELOG.md for implementation history
+           - Update IN-PLACE, never create "updated" or "v2" versions
+        
+        4. **Schema Updates**:
+           - Update SCHEMA_REFERENCE.md FIRST (in-place)
+           - Note pending migrations in SCHEMA_REFERENCE.md
+           - Document frontend mapping changes in same file
+           - Do NOT create new schema documentation files
+        
+        5. **Permission Updates**:
+           - Update docs/iam/PERMISSIONS_REFERENCE.md to match ability.ts (in-place)
+           - Update cross-references in relevant guides
+           - Add entry to CHANGELOG.md
+           - Do NOT create new permissions documentation files
+        
+        6. **Historical Docs**:
+           - Move completed implementation summaries to /docs/archive/ only when done
+           - Keep WIP implementation docs in /workspace until complete
+           - Never delete historical docs, only archive them
+        
+        7. **Workspace Cleanup**:
+           - Remove temporary planning/implementation files from /workspace after completion
+           - Move finalized guides from /workspace to appropriate /docs subdirectory
+           - Never leave finalized documentation in /workspace
+           - Keep /workspace only for true temporary outputs
+        
+        8. **Accuracy Requirements**:
+           - NEVER document database fields that don't exist in latest schema
+           - ALWAYS distinguish between database terminology and frontend terminology
+           - ALWAYS verify against actual database/latest_db_aftermigration_*.sql files
+           - ALWAYS test that docs match runtime behavior in src/auth/ability.ts
+           - ALWAYS update existing docs rather than creating alternatives
+        
+        9. **Eliminate Duplicates**:
+           - Check for existing docs before creating new ones
+           - If duplicate found, consolidate into authoritative doc (SCHEMA_REFERENCE.md, PERMISSIONS_REFERENCE.md, etc.)
+           - Move old/duplicate implementation summaries to /docs/archive/
+           - Never have duplicate content in /docs root - always use subdirectories

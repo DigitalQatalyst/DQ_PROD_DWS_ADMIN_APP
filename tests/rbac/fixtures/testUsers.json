@@ -1,0 +1,122 @@
+[
+  {
+    "email": "staff.admin@dqproj.onmicrosoft.com",
+    "customerType": "Staff",
+    "userRole": "Admin",
+    "organisationName": "stafforg",
+    "expectedAccess": "full_access_per_role",
+    "description": "Staff admin from allowed organization - should have full access"
+  },
+  {
+    "email": "staff.approver@dqproj.onmicrosoft.com",
+    "customerType": "Staff",
+    "userRole": "Approver",
+    "organisationName": "stafforg",
+    "expectedAccess": "full_access_per_role",
+    "description": "Staff approver from allowed organization"
+  },
+  {
+    "email": "staff.creator@dqproj.onmicrosoft.com",
+    "customerType": "Staff",
+    "userRole": "Creator",
+    "organisationName": "stafforg2",
+    "expectedAccess": "full_access_per_role",
+    "description": "Staff creator from second allowed organization"
+  },
+  {
+    "email": "staff.viewer@dqproj.onmicrosoft.com",
+    "customerType": "Staff",
+    "userRole": "Viewer",
+    "organisationName": "stafforg2",
+    "expectedAccess": "full_access_per_role",
+    "description": "Staff viewer from second allowed organization"
+  },
+  {
+    "email": "staff.admin.random@dqproj.onmicrosoft.com",
+    "customerType": "Staff",
+    "userRole": "Admin",
+    "organisationName": "randomorg",
+    "expectedAccess": "403_forbidden",
+    "description": "Staff admin from disallowed organization - should be blocked"
+  },
+  {
+    "email": "partner1.admin@dqproj.onmicrosoft.com",
+    "customerType": "Partner",
+    "userRole": "Admin",
+    "organisationName": "partner1org",
+    "expectedAccess": "org_scoped_access",
+    "description": "Partner admin - should have org-scoped access only"
+  },
+  {
+    "email": "partner1.creator@dqproj.onmicrosoft.com",
+    "customerType": "Partner",
+    "userRole": "Creator",
+    "organisationName": "partner1org",
+    "expectedAccess": "org_scoped_access",
+    "description": "Partner creator - should have org-scoped access only"
+  },
+  {
+    "email": "partner1.viewer@dqproj.onmicrosoft.com",
+    "customerType": "Partner",
+    "userRole": "Viewer",
+    "organisationName": "partner1org",
+    "expectedAccess": "org_scoped_access",
+    "description": "Partner viewer - should have org-scoped access only"
+  },
+  {
+    "email": "partner2.admin@dqproj.onmicrosoft.com",
+    "customerType": "Partner",
+    "userRole": "Admin",
+    "organisationName": "partner2org",
+    "expectedAccess": "org_scoped_access",
+    "description": "Partner admin from second org - should have org-scoped access only"
+  },
+  {
+    "email": "partner2.approver@dqproj.onmicrosoft.com",
+    "customerType": "Partner",
+    "userRole": "Approver",
+    "organisationName": "partner2org",
+    "expectedAccess": "org_scoped_access",
+    "description": "Partner approver from second org"
+  },
+  {
+    "email": "enterprise.admin@dqproj.onmicrosoft.com",
+    "customerType": "Enterprise",
+    "userRole": "Admin",
+    "organisationName": "enterpriseorg",
+    "expectedAccess": "403_forbidden",
+    "description": "Enterprise admin - should be completely blocked"
+  },
+  {
+    "email": "enterprise.viewer@dqproj.onmicrosoft.com",
+    "customerType": "Enterprise",
+    "userRole": "Viewer",
+    "organisationName": "enterpriseorg",
+    "expectedAccess": "403_forbidden",
+    "description": "Enterprise viewer - should be completely blocked"
+  },
+  {
+    "email": "partner.noorg@dqproj.onmicrosoft.com",
+    "customerType": "Partner",
+    "userRole": "Admin",
+    "organisationName": "",
+    "expectedAccess": "403_forbidden",
+    "description": "Partner without organization - should be blocked"
+  },
+  {
+    "email": "staff.contributor@dqproj.onmicrosoft.com",
+    "customerType": "Staff",
+    "userRole": "Contributor",
+    "organisationName": "stafforg",
+    "expectedAccess": "full_access_per_role",
+    "description": "Staff contributor from allowed organization"
+  },
+  {
+    "email": "partner1.contributor@dqproj.onmicrosoft.com",
+    "customerType": "Partner",
+    "userRole": "Contributor",
+    "organisationName": "partner1org",
+    "expectedAccess": "org_scoped_access",
+    "description": "Partner contributor - should have org-scoped access only"
+  }
+]
