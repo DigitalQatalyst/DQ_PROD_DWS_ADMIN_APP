@@ -65,7 +65,7 @@ export function Header({
   }, [user]);
   return <>
       <header
-        className={`dq-app-header sticky top-0 z-[120] flex w-full items-center text-white transition-all duration-300 ${
+        className={`dq-app-header sticky top-0 z-[120] flex w-full items-center text-white transition-all duration-299 ${
           isSticky ? 'shadow-lg backdrop-blur-sm' : ''
         }`}
         style={{
