@@ -1,4 +1,4 @@
-# Platform Admin Dashboard - Documentation
+# Platform Admin Dashboard - Documentations
 
 Welcome to the Platform Admin Dashboard documentation. This directory contains comprehensive guides, references, and implementation history.
 
