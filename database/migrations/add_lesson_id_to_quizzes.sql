@@ -12,3 +12,4 @@ CREATE INDEX IF NOT EXISTS idx_lms_quizzes_lesson_id ON public.lms_quizzes(lesso
 COMMENT ON COLUMN public.lms_quizzes.lesson_id IS 'Optional: If set, quiz is tied to a specific lesson (end-of-lesson quiz)';
 
 
+

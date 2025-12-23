@@ -157,3 +157,4 @@ To modify policies, edit the `CREATE POLICY` statements in `lms_schema.sql`.
 - Ensure learning paths exist before linking courses
 
 
+

@@ -27,211 +27,209 @@ import { AppLayout } from './components/AppLayout';
 import EJPTransactionDashboard from './modules/ejp-transaction-dashboard';
 export function AppRouter() {
   return <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        
-        {/* Protected Routes - Require Authentication */}
-        <Route path="/" element={
-          <ProtectedRoute>
-            <HomePage />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/service-management" element={
-          <ProtectedRoute requiredRoles={['admin', 'approver', 'editor']}>
-            <ServiceManagementRoute />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/content-management" element={
-          <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
-            <ContentSegmentGate>
-              <ContentManagementRoute />
-            </ContentSegmentGate>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/course-management" element={
-          <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
-            <ContentSegmentGate>
-              <CourseManagementRoute />
-            </ContentSegmentGate>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/course-management/learning-path/:id" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <ContentSegmentGate>
-              <LearningPathFormRoute />
-            </ContentSegmentGate>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/course-management/course/:id" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <ContentSegmentGate>
-              <CourseFormRoute />
-            </ContentSegmentGate>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/course-management/module/:id" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <ContentSegmentGate>
-              <ModuleFormRoute />
-            </ContentSegmentGate>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/course-management/lesson/:id" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <ContentSegmentGate>
-              <LessonFormRoute />
-            </ContentSegmentGate>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/course-management/quiz/:id" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <ContentSegmentGate>
-              <QuizFormRoute />
-            </ContentSegmentGate>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/business-directory" element={
-          <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
-            <BusinessDirectoryRoute />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/zones-clusters" element={
-          <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
-            <ZonesClustersRoute />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/growth-areas" element={
-          <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
-            <GrowthAreasRoute />
-          </ProtectedRoute>
-        } />
-        
-        {/* Form Routes - Require Write Permissions */}
-        <Route path="/service-form" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <ServiceFormRoute />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/service-form/:id" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <ServiceFormRoute />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/business-form" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <BusinessFormRoute />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/business-form/:businessId" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <BusinessFormRoute />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/growth-area-form" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <GrowthAreaFormRoute />
-          </ProtectedRoute>
-        } />
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
 
-        <Route path="/taxonomy-manager" element={
-          <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
-            <TaxonomyManagerRoute />
-          </ProtectedRoute>
-        } />
+      {/* Protected Routes - Require Authentication */}
+      <Route path="/" element={
+        <ProtectedRoute>
+          <HomePage />
+        </ProtectedRoute>
+      } />
 
-        {/* Taxonomy Form Routes */}
-        <Route path="/taxonomy-manager/collection/new" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <TaxonomyCollectionFormRoute />
-          </ProtectedRoute>
-        } />
+      <Route path="/service-management" element={
+        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor']}>
+          <ServiceManagementRoute />
+        </ProtectedRoute>
+      } />
 
-        <Route path="/taxonomy-manager/collection/:collectionId" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <TaxonomyCollectionFormRoute />
-          </ProtectedRoute>
-        } />
+      <Route path="/content-management" element={
+        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
+          <ContentManagementRoute />
+        </ProtectedRoute>
+      } />
 
-        <Route path="/taxonomy-manager/facet/new" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <TaxonomyFacetFormRoute />
-          </ProtectedRoute>
-        } />
+      <Route path="/course-management" element={
+        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
+          <ContentSegmentGate>
+            <CourseManagementRoute />
+          </ContentSegmentGate>
+        </ProtectedRoute>
+      } />
 
-        <Route path="/taxonomy-manager/facet/:facetId" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <TaxonomyFacetFormRoute />
-          </ProtectedRoute>
-        } />
+      <Route path="/course-management/learning-path/:id" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <ContentSegmentGate>
+            <LearningPathFormRoute />
+          </ContentSegmentGate>
+        </ProtectedRoute>
+      } />
 
-        <Route path="/taxonomy-manager/tag/new" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <TaxonomyTagFormRoute />
-          </ProtectedRoute>
-        } />
+      <Route path="/course-management/course/:id" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <ContentSegmentGate>
+            <CourseFormRoute />
+          </ContentSegmentGate>
+        </ProtectedRoute>
+      } />
 
-        <Route path="/taxonomy-manager/tag/:tagId" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <TaxonomyTagFormRoute />
-          </ProtectedRoute>
-        } />
+      <Route path="/course-management/module/:id" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <ContentSegmentGate>
+            <ModuleFormRoute />
+          </ContentSegmentGate>
+        </ProtectedRoute>
+      } />
 
-        <Route path="/growth-area-form/:areaId" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <GrowthAreaFormRoute />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/zone-form" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <ZoneFormRoute />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/zone-form/:zoneId" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <ZoneFormRoute />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/content-form" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <ContentSegmentGate>
-              <ContentFormRoute />
-            </ContentSegmentGate>
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/content-form/:contentId" element={
-          <ProtectedRoute requiredRoles={['admin', 'editor']}>
-            <ContentSegmentGate>
-              <ContentFormRoute />
-            </ContentSegmentGate>
-          </ProtectedRoute>
-        } />
+      <Route path="/course-management/lesson/:id" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <ContentSegmentGate>
+            <LessonFormRoute />
+          </ContentSegmentGate>
+        </ProtectedRoute>
+      } />
 
-        <Route path="/ejp-transaction-dashboard" element={
-          <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
-            <AppLayout activeSection="experience-analytics">
-              <EJPTransactionDashboard />
-            </AppLayout>
-          </ProtectedRoute>
-        } />
-      </Routes>
-    </BrowserRouter>;
+      <Route path="/course-management/quiz/:id" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <ContentSegmentGate>
+            <QuizFormRoute />
+          </ContentSegmentGate>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/business-directory" element={
+        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
+          <BusinessDirectoryRoute />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/zones-clusters" element={
+        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
+          <ZonesClustersRoute />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/growth-areas" element={
+        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
+          <GrowthAreasRoute />
+        </ProtectedRoute>
+      } />
+
+      {/* Form Routes - Require Write Permissions */}
+      <Route path="/service-form" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <ServiceFormRoute />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/service-form/:id" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <ServiceFormRoute />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/business-form" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <BusinessFormRoute />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/business-form/:businessId" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <BusinessFormRoute />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/growth-area-form" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <GrowthAreaFormRoute />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/taxonomy-manager" element={
+        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
+          <TaxonomyManagerRoute />
+        </ProtectedRoute>
+      } />
+
+      {/* Taxonomy Form Routes */}
+      <Route path="/taxonomy-manager/collection/new" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <TaxonomyCollectionFormRoute />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/taxonomy-manager/collection/:collectionId" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <TaxonomyCollectionFormRoute />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/taxonomy-manager/facet/new" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <TaxonomyFacetFormRoute />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/taxonomy-manager/facet/:facetId" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <TaxonomyFacetFormRoute />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/taxonomy-manager/tag/new" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <TaxonomyTagFormRoute />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/taxonomy-manager/tag/:tagId" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <TaxonomyTagFormRoute />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/growth-area-form/:areaId" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <GrowthAreaFormRoute />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/zone-form" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <ZoneFormRoute />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/zone-form/:zoneId" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <ZoneFormRoute />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/content-form" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <ContentSegmentGate>
+            <ContentFormRoute />
+          </ContentSegmentGate>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/content-form/:contentId" element={
+        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+          <ContentSegmentGate>
+            <ContentFormRoute />
+          </ContentSegmentGate>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/ejp-transaction-dashboard" element={
+        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
+          <AppLayout activeSection="experience-analytics">
+            <EJPTransactionDashboard />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+    </Routes>
+  </BrowserRouter>;
 }

@@ -168,3 +168,4 @@ Adjust policies in `lms_schema.sql` based on your RBAC implementation.
 - JSONB fields (faq, questions) default to empty arrays
 
 
+

@@ -12,3 +12,4 @@ CREATE INDEX IF NOT EXISTS idx_lms_lessons_module_id ON public.lms_lessons(modul
 COMMENT ON COLUMN public.lms_lessons.module_id IS 'Optional: Module this lesson belongs to. If NULL, lesson belongs directly to the course.';
 
 
+

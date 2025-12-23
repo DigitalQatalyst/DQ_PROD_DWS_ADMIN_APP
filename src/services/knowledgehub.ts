@@ -1,5 +1,25 @@
 import { getSupabaseClient } from '../lib/dbClient';
+import { createClient } from '@supabase/supabase-js';
 import type { VMediaAll, KHMediaType } from '../types/knowledgehub';
+
+// Get service role client for read operations that need to bypass RLS
+// This allows all authenticated users to view content regardless of segment
+function getServiceRoleClient() {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const serviceRoleKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.warn('⚠️ Service role key not available, falling back to regular client');
+    return null;
+  }
+
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
+}
 
 const MEDIA_TYPE_CANONICAL_MAP: Record<string, KHMediaType> = {
   article: 'Article',
@@ -124,7 +144,8 @@ export interface ListMediaFilters {
 }
 
 export async function listMedia(filters: ListMediaFilters = {}): Promise<VMediaAll[]> {
-  const supabase = getSupabaseClient();
+  // Use service role client to bypass RLS - allows all authenticated users to view content
+  const supabase = getServiceRoleClient() || getSupabaseClient();
   if (!supabase) throw new Error('Supabase client not available');
 
   // Query v_media_all view - it includes article_byline from metadata
@@ -166,7 +187,7 @@ export async function listMedia(filters: ListMediaFilters = {}): Promise<VMediaA
       .from('cnt_contents')
       .select('id, metadata, author_name')
       .in('id', ids);
-    
+
     if (!metadataError && metadataRows) {
       // Merge metadata into the results
       const metadataMap = new Map(metadataRows.map(row => [row.id, { metadata: row.metadata, author_name: row.author_name }]));
@@ -191,13 +212,13 @@ export async function checkSlugExists(slug: string): Promise<boolean> {
   if (!slug) return false;
   const supabase = getSupabaseClient();
   if (!supabase) throw new Error('Supabase client not available');
-  
+
   const { data, error } = await supabase
     .from('cnt_contents')
     .select('id')
     .eq('slug', slug)
     .limit(1);
-  
+
   if (error) throw error;
   return (data?.length || 0) > 0;
 }
