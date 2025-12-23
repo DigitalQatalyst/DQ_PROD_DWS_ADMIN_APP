@@ -1,0 +1,109 @@
+name: 🚀 Deploy to Vercel (Prod + Preview)
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+      - develop
+      - "fix/**"
+      - "hotfix/**"
+      - "develop-staging"
+      - "staging"
+      - "release"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🧾 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history for commit info
+
+      - name: 📊 Extract commit info
+        id: commit_info
+        run: |
+          AUTHOR_NAME="${{ github.event.head_commit.author.name }}"
+          AUTHOR_EMAIL="${{ github.event.head_commit.author.email }}"
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          echo "author_name=$AUTHOR_NAME" >> $GITHUB_OUTPUT
+          echo "author_email=$AUTHOR_EMAIL" >> $GITHUB_OUTPUT
+          echo "🔍 Commit by: $AUTHOR_NAME ($AUTHOR_EMAIL)"
+
+      - name: 🧰 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🏗️ Build project
+        run: npm run build
+        env:
+          # Add any build-time environment variables here
+          NODE_ENV: production
+
+      - name: ⚙️ Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: 🔗 Pull Vercel environment
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: 🏗️ Build with Vercel
+        run: vercel build ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: 🌐 Deploy to Vercel
+        id: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          BRANCH_NAME: ${{ github.ref_name }}
+          AUTHOR_NAME: ${{ steps.commit_info.outputs.author_name }}
+          AUTHOR_EMAIL: ${{ steps.commit_info.outputs.author_email }}
+        run: |
+          echo "🔍 Branch: $BRANCH_NAME"
+          echo "👤 Deployed by: $AUTHOR_NAME ($AUTHOR_EMAIL)"
+          
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "🚀 Deploying PRODUCTION build..."
+            DEPLOY_URL=$(vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN)
+            echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+            echo "✅ Production deployed at: $DEPLOY_URL"
+          else
+            echo "🧪 Deploying PREVIEW build for branch: $BRANCH_NAME"
+            DEPLOY_URL=$(vercel deploy --prebuilt --token=$VERCEL_TOKEN)
+            echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+            echo "✅ Preview deployed at: $DEPLOY_URL"
+          fi
+
+      - name: 💬 Comment on PR (if applicable)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const deployUrl = '${{ steps.deploy.outputs.deploy_url }}';
+            const author = '${{ steps.commit_info.outputs.author_name }}';
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 **Preview Deployment Ready!**\n\n✨ Deployed by: **${author}**\n🔗 Preview URL: ${deployUrl}\n\n_Deployment triggered by commit ${context.sha.substring(0, 7)}_`
+            });
+
+      - name: 📝 Deployment summary
+        run: |
+          echo "## 🎉 Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployed by:** ${{ steps.commit_info.outputs.author_name }} (${{ steps.commit_info.outputs.author_email }})" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** ${{ steps.deploy.outputs.deploy_url }}" >> $GITHUB_STEP_SUMMARY
+        
