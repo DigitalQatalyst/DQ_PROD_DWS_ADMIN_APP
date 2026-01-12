@@ -17,17 +17,21 @@ export const LessonForm: React.FC = () => {
     title: '',
     description: '',
     duration: 0,
-    item_order: 0,
+    item_order: 1,
     is_locked: false,
     content: '',
     video_url: '',
+    lesson_type: 'text' as 'text' | 'video' | 'quiz',
+    quiz_id: '',
+    is_final_assessment: false,
   });
 
   const [courses, setCourses] = useState<any[]>([]);
   const [modules, setModules] = useState<any[]>([]);
+  const [quizzes, setQuizzes] = useState<any[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [selectedModule, setSelectedModule] = useState<any>(null);
-  const [contentType, setContentType] = useState<'text' | 'video'>('text');
+  const [contentType, setContentType] = useState<'text' | 'video' | 'quiz'>('text');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
@@ -42,26 +46,32 @@ export const LessonForm: React.FC = () => {
   }, [id, isEditing]);
 
   useEffect(() => {
-    // Load modules when course is selected
+    // Load modules and quizzes when course is selected
     if (formData.course_id) {
       loadModules(formData.course_id);
+      loadQuizzes(formData.course_id);
     } else {
       setModules([]);
+      setQuizzes([]);
       setSelectedModule(null);
     }
   }, [formData.course_id]);
 
   useEffect(() => {
-    // Set content type based on video_url
-    if (formData.video_url) {
+    // Set content type based on video_url or quiz_id
+    if (formData.lesson_type === 'quiz') {
+      setContentType('quiz');
+    } else if (formData.video_url) {
       setContentType('video');
+    } else {
+      setContentType('text');
     }
-  }, [formData.video_url]);
+  }, [formData.video_url, formData.lesson_type, formData.quiz_id]);
 
   const loadCourses = async () => {
     const supabase = getSupabaseClient();
     if (!supabase) return;
-    
+
     const { data } = await supabase.from('lms_courses').select('id, title, slug').order('title');
     if (data) {
       setCourses(data);
@@ -76,13 +86,13 @@ export const LessonForm: React.FC = () => {
   const loadModules = async (courseId: string) => {
     const supabase = getSupabaseClient();
     if (!supabase) return;
-    
+
     const { data } = await supabase
       .from('lms_modules')
       .select('id, title, item_order')
       .eq('course_id', courseId)
       .order('item_order');
-    
+
     if (data) {
       setModules(data);
       // Set selected module if editing
@@ -91,6 +101,19 @@ export const LessonForm: React.FC = () => {
         if (module) setSelectedModule(module);
       }
     }
+  };
+
+  const loadQuizzes = async (courseId: string) => {
+    const supabase = getSupabaseClient();
+    if (!supabase) return;
+
+    const { data } = await supabase
+      .from('lms_quizzes')
+      .select('id, title')
+      .eq('course_id', courseId)
+      .order('title');
+
+    if (data) setQuizzes(data);
   };
 
   const loadLesson = async (lessonId: string) => {
@@ -124,10 +147,11 @@ export const LessonForm: React.FC = () => {
             .eq('id', data.course_id)
             .single();
           if (courseData) setSelectedCourse(courseData);
-          
-          // Load modules for the course
+
+          // Load modules and quizzes for the course
           await loadModules(data.course_id);
-          
+          await loadQuizzes(data.course_id);
+
           // Set selected module if module_id exists
           if (data.module_id) {
             const { data: moduleData } = await supabase
@@ -164,7 +188,7 @@ export const LessonForm: React.FC = () => {
     try {
       setUploadingVideo(true);
       setUploadProgress(0);
-      
+
       const result = await uploadLMSFileSupabase({
         file,
         courseSlug: selectedCourse.slug,
@@ -205,10 +229,12 @@ export const LessonForm: React.FC = () => {
       // Clear content or video_url based on selected type
       const dataToSave: any = {
         ...formData,
+        lesson_type: contentType,
         content: contentType === 'text' ? formData.content : '',
         video_url: contentType === 'video' ? formData.video_url : '',
+        quiz_id: contentType === 'quiz' ? formData.quiz_id : null,
       };
-      
+
       // Include module_id if it has a value
       if (formData.module_id) {
         dataToSave.module_id = formData.module_id;
@@ -294,7 +320,7 @@ export const LessonForm: React.FC = () => {
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-6 space-y-6">
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-800 border-b pb-2">Lesson Information</h2>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Course *</label>
               <select
@@ -382,58 +408,108 @@ export const LessonForm: React.FC = () => {
                 <input
                   type="number"
                   required
-                  min="0"
+                  min="1"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   value={formData.item_order}
-                  onChange={(e) => setFormData({ ...formData, item_order: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => setFormData({ ...formData, item_order: parseInt(e.target.value) || 1 })}
+                  disabled={formData.is_final_assessment}
                 />
               </div>
             </div>
 
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="is_locked"
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                checked={formData.is_locked}
-                onChange={(e) => setFormData({ ...formData, is_locked: e.target.checked })}
-              />
-              <label htmlFor="is_locked" className="ml-2 block text-sm text-gray-700">
-                Locked (requires completion of previous lessons)
-              </label>
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="is_locked"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  checked={formData.is_locked}
+                  onChange={(e) => setFormData({ ...formData, is_locked: e.target.checked })}
+                />
+                <label htmlFor="is_locked" className="ml-2 block text-sm text-gray-700">
+                  Locked (requires completion of previous lessons)
+                </label>
+              </div>
+
+              {contentType === 'quiz' && (
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="is_final_assessment"
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    checked={formData.is_final_assessment}
+                    onChange={async (e) => {
+                      const isFinal = e.target.checked;
+                      let newOrder = formData.item_order;
+
+                      if (isFinal && formData.course_id) {
+                        // Logic to set last order
+                        const supabase = getSupabaseClient();
+                        if (supabase) {
+                          const { data } = await supabase
+                            .from('lms_lessons')
+                            .select('item_order')
+                            .eq('course_id', formData.course_id)
+                            .order('item_order', { ascending: false })
+                            .limit(1);
+
+                          newOrder = data && data.length > 0 ? data[0].item_order + 1 : 1;
+                        }
+                      }
+
+                      setFormData({
+                        ...formData,
+                        is_final_assessment: isFinal,
+                        item_order: newOrder
+                      });
+                    }}
+                  />
+                  <label htmlFor="is_final_assessment" className="ml-2 block text-sm text-gray-700">
+                    Final Assessment (Will be placed at the end of the course)
+                  </label>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Content Type Selection */}
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-800 border-b pb-2">Content</h2>
-            
+
             <div className="flex space-x-4 mb-4">
               <button
                 type="button"
                 onClick={() => setContentType('text')}
-                className={`px-4 py-2 rounded-lg ${
-                  contentType === 'text'
+                className={`px-4 py-2 rounded-lg ${contentType === 'text'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                  }`}
               >
                 Text Content (Markdown)
               </button>
               <button
                 type="button"
                 onClick={() => setContentType('video')}
-                className={`px-4 py-2 rounded-lg ${
-                  contentType === 'video'
+                className={`px-4 py-2 rounded-lg ${contentType === 'video'
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
+                  }`}
               >
                 Video
               </button>
+              <button
+                type="button"
+                onClick={() => setContentType('quiz')}
+                className={`px-4 py-2 rounded-lg ${contentType === 'quiz'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+              >
+                Quiz
+              </button>
             </div>
 
-            {contentType === 'text' ? (
+            {contentType === 'text' && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Content *
@@ -447,7 +523,9 @@ export const LessonForm: React.FC = () => {
                   Use the toolbar to format your content. Content is saved as Markdown format.
                 </p>
               </div>
-            ) : (
+            )}
+
+            {contentType === 'video' && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Video URL *</label>
                 <div className="flex items-center space-x-4">
@@ -459,9 +537,8 @@ export const LessonForm: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
                     placeholder="Video URL or upload a file"
                   />
-                  <label className={`px-4 py-2 rounded-lg cursor-pointer ${
-                    uploadingVideo ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 hover:bg-gray-200'
-                  }`}>
+                  <label className={`px-4 py-2 rounded-lg cursor-pointer ${uploadingVideo ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 hover:bg-gray-200'
+                    }`}>
                     <UploadIcon className="h-4 w-4 inline mr-2" />
                     {uploadingVideo ? `Uploading... ${uploadProgress}%` : 'Upload'}
                     <input
@@ -494,6 +571,31 @@ export const LessonForm: React.FC = () => {
                       Your browser does not support the video tag.
                     </video>
                   </div>
+                )}
+              </div>
+            )}
+
+            {contentType === 'quiz' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Select Quiz *</label>
+                <select
+                  required={contentType === 'quiz'}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  value={formData.quiz_id}
+                  onChange={(e) => setFormData({ ...formData, quiz_id: e.target.value })}
+                >
+                  <option value="">Select a quiz</option>
+                  {quizzes.map((quiz) => (
+                    <option key={quiz.id} value={quiz.id}>
+                      {quiz.title}
+                    </option>
+                  ))}
+                </select>
+                {!formData.course_id && (
+                  <p className="mt-2 text-sm text-yellow-600">Please select a course first to see available quizzes.</p>
+                )}
+                {formData.course_id && quizzes.length === 0 && (
+                  <p className="mt-2 text-sm text-gray-600">No quizzes found for this course. <button type="button" onClick={() => navigate('/course-management/quiz/new')} className="text-blue-600 hover:underline">Create a quiz</button></p>
                 )}
               </div>
             )}

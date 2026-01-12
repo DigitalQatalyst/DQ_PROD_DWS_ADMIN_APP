@@ -14,7 +14,7 @@ export const ModuleForm: React.FC = () => {
     title: '',
     description: '',
     duration: 0,
-    item_order: 0,
+    item_order: 1,
     is_locked: false,
   });
 
@@ -33,7 +33,7 @@ export const ModuleForm: React.FC = () => {
   const loadCourses = async () => {
     const supabase = getSupabaseClient();
     if (!supabase) return;
-    
+
     const { data } = await supabase.from('lms_courses').select('id, title').order('title');
     if (data) setCourses(data);
   };
@@ -131,7 +131,7 @@ export const ModuleForm: React.FC = () => {
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-6 space-y-6">
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-800 border-b pb-2">Module Information</h2>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Course *</label>
               <select
@@ -188,10 +188,10 @@ export const ModuleForm: React.FC = () => {
                 <input
                   type="number"
                   required
-                  min="0"
+                  min="1"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   value={formData.item_order}
-                  onChange={(e) => setFormData({ ...formData, item_order: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => setFormData({ ...formData, item_order: parseInt(e.target.value) || 1 })}
                 />
               </div>
             </div>

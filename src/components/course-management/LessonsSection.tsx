@@ -14,6 +14,8 @@ interface Lesson {
   is_locked: boolean;
   content?: string;
   video_url?: string;
+  lesson_type?: string;
+  quiz_id?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -34,7 +36,7 @@ export const LessonsSection: React.FC = () => {
   const loadCourses = async () => {
     const supabase = getSupabaseClient();
     if (!supabase) return;
-    
+
     const { data } = await supabase.from('lms_courses').select('id, title');
     if (data) setCourses(data);
   };
@@ -168,10 +170,10 @@ export const LessonsSection: React.FC = () => {
                   <td className="px-4 py-3 text-sm text-gray-700">{lesson.duration} min</td>
                   <td className="px-4 py-3 text-sm text-gray-700">{lesson.item_order}</td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                      lesson.video_url ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
-                    }`}>
-                      {lesson.video_url ? 'Video' : 'Content'}
+                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${lesson.lesson_type === 'quiz' ? 'bg-green-100 text-green-800' :
+                        lesson.video_url ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                      }`}>
+                      {lesson.lesson_type === 'quiz' ? 'Quiz' : lesson.video_url ? 'Video' : 'Content'}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right text-sm font-medium">
