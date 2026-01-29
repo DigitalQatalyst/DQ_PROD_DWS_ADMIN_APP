@@ -17,6 +17,11 @@ on:
     branches:
       - main
 
+# Prevent redundant builds on the same branch by cancelling previous ones
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -44,11 +49,6 @@ jobs:
 
       - name: 📦 Install dependencies
         run: npm ci
-
-      - name: 🏗️ Build project
-        run: npm run build
-        env:
-          NODE_ENV: production
 
       - name: ⚙️ Install Vercel CLI
         run: npm install -g vercel@latest
