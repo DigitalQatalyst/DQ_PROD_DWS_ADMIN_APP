@@ -23,7 +23,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   'data-id': dataId,
 }) => {
   const navigate = useNavigate();
-  const { role, user } = useAuth();
+  const { role, user, logout } = useAuth();
   const [tooltipItem, setTooltipItem] = useState<string | null>(null);
   const [companyDropdownOpen, setCompanyDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -160,7 +160,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   };
 
   return (
-    <div className={`fixed lg:static inset-y-0 left-0 z-30 w-64 bg-gray-50 border-r border-gray-200 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} lg:w-60 overflow-y-auto`} data-id={dataId}>
+    <div className={`fixed lg:static inset-y-0 left-0 z-30 w-64 bg-gray-50 border-r border-gray-200 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} lg:w-60 flex flex-col`} data-id={dataId}>
       <div className="p-4 border-b border-gray-200">
         <div className="flex justify-between items-center mb-3">
           <button className="lg:hidden text-gray-500" onClick={onClose}>
@@ -191,7 +191,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
               <div className="h-px bg-slate-100 my-1 mx-2" />
               <button
                 className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors"
-                onClick={() => { /* logout is handled in AuthContext */ }}
+                onClick={() => logout()}
               >
                 Sign Out
               </button>
@@ -200,7 +200,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         </div>
       </div>
 
-      <nav className="py-4">
+      <nav className="flex-1 overflow-y-auto py-4">
         {getAdminMenuItems().map((item: any) => {
           if (item.category === 'category') {
             return (
@@ -241,6 +241,16 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           );
         })}
       </nav>
+
+      <div className="p-4 border-t border-gray-200">
+        <button
+          onClick={() => logout()}
+          className="w-full flex items-center space-x-3 px-3 py-2.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors group"
+        >
+          <Lock size={20} className="text-gray-400 group-hover:text-red-500" />
+          <span className="font-medium text-sm">Logout</span>
+        </button>
+      </div>
     </div>
   );
 };
