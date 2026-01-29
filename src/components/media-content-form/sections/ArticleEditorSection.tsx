@@ -4,20 +4,18 @@ import RichTextEditor from '../../RichTextEditor';
 import type { ValidationErrors } from '../types';
 
 interface ArticleEditorSectionProps {
-  editorJson: any;
   editorHtml: string;
   onChange: (json: any, html: string) => void;
   errors: ValidationErrors;
 }
 
-export const ArticleEditorSection: React.FC<ArticleEditorSectionProps> = ({ editorJson, editorHtml, onChange, errors }) => (
+export const ArticleEditorSection: React.FC<ArticleEditorSectionProps> = ({ editorHtml, onChange, errors }) => (
   <div>
     <label className="block text-sm font-medium text-gray-700">
       Body <span className="text-red-500">*</span>
     </label>
     <div id="content-editor" className={`mt-1 border rounded-md ${errors.content ? 'border-red-500' : 'border-gray-300'}`}>
       <RichTextEditor
-        valueJson={editorJson}
         valueHtml={editorHtml}
         onChange={onChange}
         placeholder="Write your content…"

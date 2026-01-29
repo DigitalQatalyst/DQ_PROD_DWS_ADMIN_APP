@@ -75,6 +75,7 @@ export default function UsersPage() {
             const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(
                 formData.email,
                 {
+                    redirectTo: import.meta.env.VITE_SITE_URL || 'https://dq-prod-dws-admin-app.vercel.app/',
                     data: {
                         display_name: formData.name,
                         role: formData.role,
@@ -265,8 +266,8 @@ export default function UsersPage() {
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.15em] ${u.status === 'Active'
-                                                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                                                    : 'bg-amber-50 text-amber-600 border border-amber-100'
+                                                ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                                                : 'bg-amber-50 text-amber-600 border border-amber-100'
                                                 }`}>
                                                 <div className={`h-1.5 w-1.5 rounded-full ${u.status === 'Active' ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
                                                 {u.status}
