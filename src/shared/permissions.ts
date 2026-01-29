@@ -5,7 +5,7 @@
  * It serves as the single source of truth for all CASL abilities, actions, and subjects.
  * 
  * Design Philosophy:
- * - Standardized action vocabulary (9 canonical verbs)
+ * - Standardized action vocabulary (10 canonical verbs)
  * - All domain operations map to these canonical verbs
  * - Consistent enforcement across frontend and backend
  * - Easy audit mapping and role management
@@ -18,13 +18,14 @@
 /**
  * Canonical CASL Actions
  * 
- * These 9 verbs cover all domain operations:
+ * These 10 verbs cover all domain operations:
  * - manage: Full administrative control
  * - create, read, update, delete: CRUD operations
  * - approve: Workflow validation
  * - publish: Lifecycle transitions (publish/unpublish bidirectional)
  * - archive: Archive/restore bidirectional
  * - flag: Mark for review
+ * - invite: Invite new users to the system/team
  */
 export const Actions = [
   'manage',
@@ -35,7 +36,8 @@ export const Actions = [
   'approve',
   'publish',
   'archive',
-  'flag'
+  'flag',
+  'invite'
 ] as const;
 
 export type Action = typeof Actions[number];
@@ -76,8 +78,10 @@ export type Subject = typeof Subjects[number];
  * 
  * Roles:
  * - admin: Full control (manage all)
- * - editor: Content creation and lifecycle management (create, update, publish, flag)
- * - approver: Workflow validation and publishing (read, approve, publish)
+ * - hr_admin: specialized admin for services/HR
+ * - hr_member: specialized contributor for services/HR
+ * - content_admin: specialized admin for content/knowledge
+ * - content_member: specialized contributor for content/knowledge
  * - viewer: Read-only access
  */
 export const RolePermissions = {
@@ -85,65 +89,51 @@ export const RolePermissions = {
     can: [['manage', 'all']],
     cannot: []
   },
-  editor: {
+  hr_admin: {
     can: [
-      [['create', 'read', 'update'], ['Content', 'Service', 'Business', 'Zone', 'GrowthArea']],
-      ['publish', 'Content'],  // Can publish/unpublish (bidirectional)
-      ['flag', 'Content']
+      [['create', 'read', 'update', 'approve', 'publish', 'archive', 'delete'], 'Service'],
+      ['invite', 'User'],
+      ['read', 'Dashboard']
     ],
     cannot: [
-      ['delete', 'all'],
-      ['approve', 'all']
+      [['create', 'update', 'delete', 'approve', 'publish'], ['Content', 'Business', 'Zone', 'GrowthArea']]
     ]
   },
-  approver: {
+  hr_member: {
     can: [
-      ['read', 'all'],
-      [['approve', 'publish'], 'Content'],
-      ['approve', 'Service']
+      [['create', 'read', 'update'], 'Service'],
+      ['read', 'Dashboard']
     ],
     cannot: [
-      ['delete', 'all'],
-      ['create', 'all']
+      [['approve', 'publish', 'delete'], 'Service'],
+      [['create', 'update', 'delete', 'approve', 'publish'], ['Content', 'Business', 'Zone', 'GrowthArea']]
+    ]
+  },
+  content_admin: {
+    can: [
+      [['create', 'read', 'update', 'approve', 'publish', 'archive', 'delete'], 'Content'],
+      ['invite', 'User'],
+      ['read', 'Dashboard']
+    ],
+    cannot: [
+      [['create', 'update', 'delete', 'approve', 'publish'], ['Service', 'Business', 'Zone', 'GrowthArea']]
+    ]
+  },
+  content_member: {
+    can: [
+      [['create', 'read', 'update'], 'Content'],
+      ['read', 'Dashboard']
+    ],
+    cannot: [
+      [['approve', 'publish', 'delete'], 'Content'],
+      [['create', 'update', 'delete', 'approve', 'publish'], ['Service', 'Business', 'Zone', 'GrowthArea']]
     ]
   },
   viewer: {
     can: [['read', 'all']],
     cannot: [
-      ['create', 'update', 'delete', 'approve', 'publish', 'archive', 'flag'],
+      ['create', 'update', 'delete', 'approve', 'publish', 'archive', 'flag', 'invite'],
       'all'
-    ]
-  },
-  hr: {
-    can: [
-      ['read', 'Service'],
-      ['update', 'Service']
-    ],
-    cannot: [
-      ['manage', 'all'],
-      ['create', 'all'],
-      ['delete', 'all'],
-      ['approve', 'all'],
-      ['read', 'Content'],
-      ['read', 'Business'],
-      ['read', 'Zone'],
-      ['read', 'GrowthArea']
-    ]
-  },
-  content: {
-    can: [
-      ['read', 'Content'],
-      ['update', 'Content']
-    ],
-    cannot: [
-      ['manage', 'all'],
-      ['create', 'all'],
-      ['delete', 'all'],
-      ['approve', 'all'],
-      ['read', 'Service'],
-      ['read', 'Business'],
-      ['read', 'Zone'],
-      ['read', 'GrowthArea']
     ]
   }
 } as const;
@@ -165,7 +155,8 @@ export const ActionDescriptions: Record<Action, string> = {
   approve: 'Validate and approve workflow transitions',
   publish: 'Publish or unpublish content (bidirectional lifecycle transition)',
   archive: 'Archive or restore entities (bidirectional)',
-  flag: 'Mark entities for review or follow-up'
+  flag: 'Mark entities for review or follow-up',
+  invite: 'Invite new users to the organization or team'
 };
 
 // ============================================================================

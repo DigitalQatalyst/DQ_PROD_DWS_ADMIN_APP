@@ -5,7 +5,7 @@
 
 // User and Authentication Types
 export type UserSegment = 'internal' | 'partner' | 'customer' | 'advisor';
-export type UserRole = 'admin' | 'editor' | 'approver' | 'viewer' | 'hr' | 'content';
+export type UserRole = 'admin' | 'hr_admin' | 'hr_member' | 'content_admin' | 'content_member' | 'viewer';
 
 export interface User {
   id: string;

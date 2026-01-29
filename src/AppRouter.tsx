@@ -22,11 +22,19 @@ import TaxonomyCollectionFormRoute from './pages/taxonomy-collection-form';
 import TaxonomyFacetFormRoute from './pages/taxonomy-facet-form';
 import TaxonomyTagFormRoute from './pages/taxonomy-tag-form';
 import LoginPage from './pages/login';
+import UsersPage from './pages/Users';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ContentSegmentGate } from './components/ContentSegmentGate';
 import { AppLayout } from './components/AppLayout';
 import EJPTransactionDashboard from './modules/ejp-transaction-dashboard';
+
 export function AppRouter() {
+  const allStaff = ['admin', 'hr_admin', 'hr_member', 'content_admin', 'content_member'] as const;
+  const allUsers = ['admin', 'hr_admin', 'hr_member', 'content_admin', 'content_member', 'viewer'] as const;
+  const hrStaff = ['admin', 'hr_admin', 'hr_member'] as const;
+  const contentStaff = ['admin', 'content_admin', 'content_member'] as const;
+  const admins = ['admin', 'hr_admin', 'content_admin'] as const;
+
   return <BrowserRouter>
     <Routes>
       <Route path="/login" element={<LoginPage />} />
@@ -39,25 +47,25 @@ export function AppRouter() {
       } />
 
       <Route path="/service-management" element={
-        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'hr']}>
+        <ProtectedRoute requiredRoles={[...hrStaff]}>
           <ServiceManagementRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/media-management" element={
-        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer', 'content']}>
+        <ProtectedRoute requiredRoles={[...contentStaff]}>
           <ContentManagementRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/knowledgehub-management" element={
-        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer', 'content']}>
+        <ProtectedRoute requiredRoles={[...contentStaff]}>
           <KnowledgeHubManagementRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/course-management" element={
-        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer', 'content']}>
+        <ProtectedRoute requiredRoles={[...contentStaff]}>
           <ContentSegmentGate>
             <CourseManagementRoute />
           </ContentSegmentGate>
@@ -65,7 +73,7 @@ export function AppRouter() {
       } />
 
       <Route path="/course-management/learning-path/:id" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={[...contentStaff]}>
           <ContentSegmentGate>
             <LearningPathFormRoute />
           </ContentSegmentGate>
@@ -73,7 +81,7 @@ export function AppRouter() {
       } />
 
       <Route path="/course-management/course/:id" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={[...contentStaff]}>
           <ContentSegmentGate>
             <CourseFormRoute />
           </ContentSegmentGate>
@@ -81,7 +89,7 @@ export function AppRouter() {
       } />
 
       <Route path="/course-management/module/:id" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={[...contentStaff]}>
           <ContentSegmentGate>
             <ModuleFormRoute />
           </ContentSegmentGate>
@@ -89,7 +97,7 @@ export function AppRouter() {
       } />
 
       <Route path="/course-management/lesson/:id" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={[...contentStaff]}>
           <ContentSegmentGate>
             <LessonFormRoute />
           </ContentSegmentGate>
@@ -97,7 +105,7 @@ export function AppRouter() {
       } />
 
       <Route path="/course-management/quiz/:id" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={[...contentStaff]}>
           <ContentSegmentGate>
             <QuizFormRoute />
           </ContentSegmentGate>
@@ -105,117 +113,117 @@ export function AppRouter() {
       } />
 
       <Route path="/business-directory" element={
-        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
+        <ProtectedRoute requiredRoles={[...allUsers]}>
           <BusinessDirectoryRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/zones-clusters" element={
-        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
+        <ProtectedRoute requiredRoles={[...allUsers]}>
           <ZonesClustersRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/growth-areas" element={
-        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
+        <ProtectedRoute requiredRoles={[...allUsers]}>
           <GrowthAreasRoute />
         </ProtectedRoute>
       } />
 
       {/* Form Routes - Require Write Permissions */}
       <Route path="/service-form" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor', 'hr']}>
+        <ProtectedRoute requiredRoles={[...hrStaff]}>
           <ServiceFormRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/service-form/:id" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor', 'hr']}>
+        <ProtectedRoute requiredRoles={[...hrStaff]}>
           <ServiceFormRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/business-form" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={[...allStaff]}>
           <BusinessFormRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/business-form/:businessId" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={[...allStaff]}>
           <BusinessFormRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/growth-area-form" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={[...allStaff]}>
           <GrowthAreaFormRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/taxonomy-manager" element={
-        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
+        <ProtectedRoute requiredRoles={[...allUsers]}>
           <TaxonomyManagerRoute />
         </ProtectedRoute>
       } />
 
       {/* Taxonomy Form Routes */}
       <Route path="/taxonomy-manager/collection/new" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={[...allStaff]}>
           <TaxonomyCollectionFormRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/taxonomy-manager/collection/:collectionId" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={[...allStaff]}>
           <TaxonomyCollectionFormRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/taxonomy-manager/facet/new" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={[...allStaff]}>
           <TaxonomyFacetFormRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/taxonomy-manager/facet/:facetId" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={[...allStaff]}>
           <TaxonomyFacetFormRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/taxonomy-manager/tag/new" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={[...allStaff]}>
           <TaxonomyTagFormRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/taxonomy-manager/tag/:tagId" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={[...allStaff]}>
           <TaxonomyTagFormRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/growth-area-form/:areaId" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={[...allStaff]}>
           <GrowthAreaFormRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/zone-form" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={[...allStaff]}>
           <ZoneFormRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/zone-form/:zoneId" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={[...allStaff]}>
           <ZoneFormRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/content-form" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor', 'content']}>
+        <ProtectedRoute requiredRoles={[...contentStaff]}>
           <ContentSegmentGate>
             <ContentFormRoute />
           </ContentSegmentGate>
@@ -223,15 +231,21 @@ export function AppRouter() {
       } />
 
       <Route path="/content-form/:contentId" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor', 'content']}>
+        <ProtectedRoute requiredRoles={[...contentStaff]}>
           <ContentSegmentGate>
             <ContentFormRoute />
           </ContentSegmentGate>
         </ProtectedRoute>
       } />
 
+      <Route path="/users" element={
+        <ProtectedRoute requiredRoles={[...admins]}>
+          <UsersPage />
+        </ProtectedRoute>
+      } />
+
       <Route path="/ejp-transaction-dashboard" element={
-        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
+        <ProtectedRoute requiredRoles={[...allUsers]}>
           <AppLayout activeSection="experience-analytics">
             <EJPTransactionDashboard />
           </AppLayout>
