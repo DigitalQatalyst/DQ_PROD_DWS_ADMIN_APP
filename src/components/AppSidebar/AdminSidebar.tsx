@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, ChevronDown, Info, Lock, Home, Users, UserCheck, Package, FolderOpen, MapPin, TrendingUp, CheckCircle, FileCheck, Flag, Shield, BarChart3, Activity, FileText, MessageSquare, HelpCircle, Settings, Check, Bell, Tags, BookOpen } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { X, ChevronDown, Info, Lock, Home, Users, UserCheck, Package, FolderOpen, MapPin, TrendingUp, CheckCircle, FileCheck, Flag, Shield, BarChart3, Activity, FileText, MessageSquare, HelpCircle, Settings, Check, Bell, Tags, BookOpen, Briefcase } from 'lucide-react';
 interface Company {
   id: string
   name: string
@@ -34,6 +35,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { role, user } = useAuth();
   const [tooltipItem, setTooltipItem] = useState<string | null>(null);
   const [companyDropdownOpen, setCompanyDropdownOpen] = useState(false);
   const [focusedMenuIndex, setFocusedMenuIndex] = useState(-1);
@@ -93,21 +95,66 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   }, [isOpen, companyDropdownOpen, onClose])
   const getAdminMenuItems = () => {
     const items: any[] = []
-    if (!onboardingComplete) {
-      items.push({
-        id: 'onboarding',
-        label: 'Platform Setup',
-        icon: <Settings size={20} />,
-        path: '/onboarding'
-      });
-    } else {
+
+    // Always show Dashboard if onboarding is complete
+    if (onboardingComplete) {
       items.push({
         id: 'dashboard',
         label: 'Dashboard',
         icon: <Home size={20} />,
         path: '/'
       });
+    } else {
+      items.push({
+        id: 'onboarding',
+        label: 'Platform Setup',
+        icon: <Settings size={20} />,
+        path: '/onboarding'
+      });
     }
+
+    // Role-based filtering logic
+    if (role === 'hr') {
+      // HR only sees Service Requests
+      items.push({
+        id: 'services-category',
+        label: 'SERVICE REQUESTS',
+        category: 'category'
+      }, {
+        id: 'service-management',
+        label: 'Service Management',
+        icon: <Briefcase size={20} />,
+        path: '/service-management'
+      });
+      return items;
+    }
+
+    if (role === 'content') {
+      // Content only sees Marketplace Hub
+      items.push({
+        id: 'marketplace-hub',
+        label: 'MARKETPLACE HUB',
+        category: 'category'
+      }, {
+        id: 'media-management',
+        label: 'Media Management',
+        icon: <FileCheck size={20} />,
+        path: '/media-management'
+      }, {
+        id: 'knowledgehub-management',
+        label: 'Knowledge Hub',
+        icon: <BookOpen size={20} />,
+        path: '/knowledgehub-management'
+      }, {
+        id: 'course-management',
+        label: 'Course Management',
+        icon: <BookOpen size={20} />,
+        path: '/course-management'
+      });
+      return items;
+    }
+
+    // Default: Super Admin or other roles see everything
     items.push({
       id: 'activity-center',
       label: 'Activity Center',
@@ -127,6 +174,15 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       label: 'Departments',
       icon: <FolderOpen size={20} />,
       path: '/departments'
+    }, {
+      id: 'services-category',
+      label: 'SERVICE REQUESTS',
+      category: 'category'
+    }, {
+      id: 'service-management',
+      label: 'Service Management',
+      icon: <Briefcase size={20} />,
+      path: '/service-management'
     }, {
       id: 'content-data',
       label: 'CONTENT & DATA',
@@ -151,10 +207,15 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
       label: 'MARKETPLACE HUB',
       category: 'category'
     }, {
-      id: 'content-management',
-      label: 'Content Management',
+      id: 'media-management',
+      label: 'Media Management',
       icon: <FileCheck size={20} />,
-      path: '/content-management'
+      path: '/media-management'
+    }, {
+      id: 'knowledgehub-management',
+      label: 'Knowledge Hub',
+      icon: <BookOpen size={20} />,
+      path: '/knowledgehub-management'
     }, {
       id: 'course-management',
       label: 'Course Management',
@@ -228,10 +289,10 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         }}>
           <div className="flex-1 min-w-0">
             <h2 className="text-blue-900 font-bold text-lg leading-tight truncate">
-              Platform Admin
+              {user?.name || 'Platform Admin'}
             </h2>
-            <span className="text-xs text-gray-500 font-medium mt-0.5 block">
-              Super Admin
+            <span className="text-xs text-gray-500 font-medium mt-0.5 block capitalize">
+              {role === 'hr' ? 'HR Manager' : role === 'content' ? 'Content Manager' : role === 'admin' ? 'Super Admin' : role}
             </span>
           </div>
           <ChevronDown size={18} className={`text-gray-500 transition-transform ml-2 flex-shrink-0 ${companyDropdownOpen ? 'rotate-180' : ''}`} />

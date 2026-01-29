@@ -1,6 +1,6 @@
 // KnowledgeHub schema types used by services/hooks
 
-export type KHMediaType = 'Article' | 'Video' | 'Podcast' | 'Report' | 'Tool' | 'Event';
+export type KHMediaType = 'Article' | 'Video' | 'Podcast' | 'Report' | 'Tool' | 'Event' | 'Guide';
 export type KHStatus = 'Draft' | 'InReview' | 'Scheduled' | 'Published' | 'Archived' | string;
 export type KHVisibility = 'Public' | 'Private' | 'Unlisted' | string;
 

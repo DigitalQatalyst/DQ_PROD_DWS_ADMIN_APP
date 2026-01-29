@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import { useAbility } from './useAbility';
 import { Toast } from '../components/ui/Toast';
 import { createClient } from '@supabase/supabase-js';
+import { supabase2 } from '../lib/supabase2';
 
 export interface WorkflowTransition {
   fromStatus: string;
@@ -53,12 +54,12 @@ const STATUS_MAP = {
 function getServiceRoleClient() {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const serviceRoleKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY || import.meta.env.SUPABASE_SERVICE_ROLE_KEY;
-  
+
   if (!supabaseUrl || !serviceRoleKey) {
     console.warn('⚠️ Service role key not available, falling back to regular client');
     return null;
   }
-  
+
   return createClient(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,
@@ -156,7 +157,7 @@ async function findAndRankReviewers(
 
     // Get workload for each candidate (count of active assignments)
     const candidateIds = profiles.map((p: any) => p.user_id);
-    
+
     const { data: assignments, error: assignmentError } = await supabase
       .from('wf_review_assignments')
       .select('assigned_reviewer_id, assigned_at')
@@ -166,12 +167,12 @@ async function findAndRankReviewers(
     // Calculate workload per reviewer
     const workloadMap = new Map<string, number>();
     const lastAssignedMap = new Map<string, string | null>();
-    
+
     if (assignments) {
       assignments.forEach((assignment: any) => {
         const reviewerId = assignment.assigned_reviewer_id;
         workloadMap.set(reviewerId, (workloadMap.get(reviewerId) || 0) + 1);
-        
+
         // Track most recent assignment
         const existing = lastAssignedMap.get(reviewerId);
         if (!existing || assignment.assigned_at > existing) {
@@ -316,26 +317,26 @@ export function useReviewWorkflow({
   const { user, role, userSegment } = useAuth();
   const ability = useAbility();
   const organizationId = user?.organization_id || user?.id || null;
-  
+
   // Helper to get user ID from multiple sources
   const getUserId = (): string | null => {
     if (user?.id) return user.id;
-    
+
     // Fall back to localStorage
-    const localStorageId = localStorage.getItem('user_id') || 
-                          localStorage.getItem('azure_user_id');
-    
+    const localStorageId = localStorage.getItem('user_id') ||
+      localStorage.getItem('azure_user_id');
+
     if (localStorageId) {
       console.log('⚠️ Using localStorage user ID as fallback:', localStorageId);
     }
-    
+
     return localStorageId;
   };
-  
+
   // Helper to get user name from multiple sources
   const getUserName = (): string => {
     if (user?.name) return user.name;
-    
+
     const azureUserInfo = localStorage.getItem('azure_user_info');
     if (azureUserInfo) {
       try {
@@ -345,10 +346,10 @@ export function useReviewWorkflow({
         return 'Unknown';
       }
     }
-    
+
     return 'Unknown';
   };
-  
+
   // Debug: Log auth state on mount (reduced logging)
   if (Math.random() < 0.01) { // Only log 1% of the time to reduce spam
     console.log('🔍 useReviewWorkflow initialized:', {
@@ -361,7 +362,7 @@ export function useReviewWorkflow({
       userSegment
     });
   }
-  
+
   /**
    * Get current workflow step
    */
@@ -379,7 +380,7 @@ export function useReviewWorkflow({
     metadata?: Record<string, any>
   ): Promise<boolean> => {
     setLoading(true);
-    
+
     try {
       // Map action to CASL permission
       const getRequiredPermission = (action: string, newStatus: string): { action: string; subject: string } | null => {
@@ -446,21 +447,25 @@ export function useReviewWorkflow({
       }
 
       // Use service role client to bypass RLS for status updates
-      const supabase = getServiceRoleClient() || getSupabaseClient();
+      let supabase = getServiceRoleClient() || getSupabaseClient();
+      if (tableName === 'marketplace_services') {
+        supabase = supabase2;
+      }
+
       if (!supabase) {
         throw new Error('Database connection unavailable');
       }
-      
+
       console.log('🔑 Using service role client for status updates');
       console.log('🔄 Updating status:', { from: previousStatus || currentStatus, to: newStatus, itemId, tableName });
 
-      // Map status for services table (mktplc_services) - database constraint doesn't allow 'Pending Review'
+      // Map status for services table (mktplc_services or marketplace_services) - database constraint doesn't allow 'Pending Review'
       // Map 'Pending Review' to 'Pending' for services
       let mappedStatus = newStatus;
-      if (tableName === 'mktplc_services') {
+      if (tableName === 'mktplc_services' || tableName === 'marketplace_services') {
         if (newStatus === 'Pending Review') {
           mappedStatus = 'Pending';
-          console.log('🔄 Mapping status for services: "Pending Review" -> "Pending"');
+          console.log(`🔄 Mapping status for services (${tableName}): "Pending Review" -> "Pending"`);
         }
         // Ensure Unpublished and Archived are valid (they should be after migration)
         // No mapping needed as they're already valid statuses
@@ -486,7 +491,7 @@ export function useReviewWorkflow({
 
       const { data: updateData, error: updateError } = await supabase
         .from(tableName)
-        .update({ 
+        .update({
           status: mappedStatus,
           updated_at: new Date().toISOString()
         })
@@ -514,7 +519,7 @@ export function useReviewWorkflow({
         .select('organization_id')
         .eq('id', itemId)
         .maybeSingle();
-      
+
       const contentOrganizationId = contentData?.organization_id || null;
 
       // Get or create review cycle for audit logging (don't filter by status)
@@ -539,7 +544,7 @@ export function useReviewWorkflow({
           })
           .select('id')
           .single();
-        
+
         if (cycleError) {
           console.warn('Failed to create review cycle:', cycleError);
         } else {
@@ -550,11 +555,11 @@ export function useReviewWorkflow({
       // Auto-assign reviewer when status becomes "Pending Review"
       let assignedReviewerId: string | null = null;
       let assignedReviewerName: string | null = null;
-      
+
       if (newStatus === 'Pending Review' && cycleData?.id) {
         const auditUserId = getUserId() || '00000000-0000-0000-0000-000000000000';
         const auditUserName = getUserName();
-        
+
         const assignment = await autoAssignReviewer(
           supabase,
           cycleData.id,
@@ -563,10 +568,10 @@ export function useReviewWorkflow({
           auditUserId,
           auditUserName
         );
-        
+
         assignedReviewerId = assignment.reviewerId;
         assignedReviewerName = assignment.reviewerName;
-        
+
         if (assignedReviewerId) {
           console.log('✅ Reviewer auto-assigned:', assignedReviewerName);
         } else {
@@ -577,16 +582,16 @@ export function useReviewWorkflow({
       // Get user info for audit log
       const auditUserId = getUserId() || '00000000-0000-0000-0000-000000000000';
       const auditUserName = getUserName();
-      
+
       // Log audit entry in wf_review_actions
       const auditMetadata = {
         ...(metadata || {}),
-        ...(assignedReviewerId ? { 
+        ...(assignedReviewerId ? {
           assigned_reviewer_id: assignedReviewerId,
-          assigned_reviewer_name: assignedReviewerName 
+          assigned_reviewer_name: assignedReviewerName
         } : {})
       };
-      
+
       const { error: auditError } = await supabase
         .from('wf_review_actions')
         .insert({
@@ -643,11 +648,14 @@ export function useReviewWorkflow({
 
     try {
       // Use service role client to bypass RLS for comment operations
-      const supabase = getServiceRoleClient() || getSupabaseClient();
+      let supabase = (tableName === 'marketplace_services')
+        ? supabase2
+        : (getServiceRoleClient() || getSupabaseClient());
+
       if (!supabase) {
         throw new Error('Database connection unavailable');
       }
-      
+
       console.log('🔑 Using service role client for comment operations');
 
       // Debug: Check localStorage for user info
@@ -664,7 +672,7 @@ export function useReviewWorkflow({
       // Get user ID from multiple sources
       const userId = getUserId();
       const userName = getUserName();
-      
+
       if (!userId) {
         console.error('❌ No user ID available for comment submission');
         console.error('User object:', user);
@@ -675,24 +683,24 @@ export function useReviewWorkflow({
           user_role: localStorage.getItem('user_role'),
           user_segment: localStorage.getItem('user_segment')
         });
-        
+
         if (showToast) {
           showToast('User not authenticated. Please log in again.', 'error');
         }
         return null;
       }
-      
+
       console.log('✅ User validated for comment:', { id: userId, name: userName });
 
       // Determine if this is a service comment (uses different table)
-      const isServiceComment = tableName === 'mktplc_services';
+      const isServiceComment = tableName === 'mktplc_services' || tableName === 'marketplace_services';
       const commentTable = isServiceComment ? 'mktplc_service_comments' : 'wf_review_comments';
 
       // Get organization_id for service comments (for RLS)
       let organizationId: string | null = null;
       if (isServiceComment) {
         const { data: serviceData } = await supabase
-          .from('mktplc_services')
+          .from(tableName)
           .select('organization_id')
           .eq('id', itemId)
           .maybeSingle();
@@ -712,13 +720,13 @@ export function useReviewWorkflow({
           .maybeSingle();
 
         reviewCycleId = cycleData?.id || metadata?.review_cycle_id || null;
-        
+
         if (!reviewCycleId && !isServiceComment) {
           // Map content status to review cycle status
-          const cycleStatus = currentStatus === 'Pending Review' ? 'Pending Review' : 
-                             currentStatus === 'Published' ? 'Published' :
-                             currentStatus === 'Archived' ? 'Archived' : 'Draft';
-          
+          const cycleStatus = currentStatus === 'Pending Review' ? 'Pending Review' :
+            currentStatus === 'Published' ? 'Published' :
+              currentStatus === 'Archived' ? 'Archived' : 'Draft';
+
           const { data: newCycle, error: cycleError } = await supabase
             .from('wf_review_cycles')
             .insert({
@@ -730,7 +738,7 @@ export function useReviewWorkflow({
             })
             .select('id')
             .single();
-          
+
           if (cycleError) {
             console.error('Failed to create review cycle:', cycleError);
             console.error('Cycle error details:', {
@@ -741,7 +749,7 @@ export function useReviewWorkflow({
             });
             throw cycleError;
           }
-          
+
           reviewCycleId = newCycle?.id;
         }
       }
@@ -756,7 +764,7 @@ export function useReviewWorkflow({
 
       // Build comment payload based on table type
       let commentPayload: any;
-      
+
       if (isServiceComment) {
         // For service comments, use mktplc_service_comments table structure
         commentPayload = {
@@ -790,9 +798,9 @@ export function useReviewWorkflow({
           mentions: mentions.length > 0 ? mentions : null
         };
       }
-      
+
       console.log('💬 Attempting to insert comment with payload:', commentPayload);
-      
+
       const { data, error } = await supabase
         .from(commentTable)
         .insert(commentPayload)
@@ -809,7 +817,7 @@ export function useReviewWorkflow({
         });
         throw error;
       }
-      
+
       console.log('✅ Comment inserted successfully:', data);
 
       // Show toast if provided
@@ -852,15 +860,18 @@ export function useReviewWorkflow({
   const fetchComments = useCallback(async (): Promise<ReviewComment[]> => {
     try {
       // Use service role client to bypass RLS for comment fetching
-      const supabase = getServiceRoleClient() || getSupabaseClient();
+      const supabase = (tableName === 'marketplace_services')
+        ? supabase2
+        : (getServiceRoleClient() || getSupabaseClient());
+
       if (!supabase) {
         return [];
       }
-      
+
       console.log('🔑 Using service role client for comment fetching');
 
       // Determine if this is a service comment (uses different table)
-      const isServiceComment = tableName === 'mktplc_services';
+      const isServiceComment = tableName === 'mktplc_services' || tableName === 'marketplace_services';
       const commentTable = isServiceComment ? 'mktplc_service_comments' : 'wf_review_comments';
       const foreignKeyField = isServiceComment ? 'service_id' : 'content_id';
 
@@ -910,11 +921,14 @@ export function useReviewWorkflow({
   const fetchAuditLog = useCallback(async (): Promise<AuditLogEntry[]> => {
     try {
       // Use service role client to bypass RLS for audit log fetching
-      const supabase = getServiceRoleClient() || getSupabaseClient();
+      const supabase = (tableName === 'marketplace_services')
+        ? supabase2
+        : (getServiceRoleClient() || getSupabaseClient());
+
       if (!supabase) {
         return [];
       }
-      
+
       console.log('🔑 Using service role client for audit log fetching');
 
       const { data, error } = await supabase
@@ -955,7 +969,10 @@ export function useReviewWorkflow({
     dueDate: string | null;
   }> => {
     try {
-      const supabase = getServiceRoleClient() || getSupabaseClient();
+      const supabase = (tableName === 'marketplace_services')
+        ? supabase2
+        : (getServiceRoleClient() || getSupabaseClient());
+
       if (!supabase) {
         return { reviewerId: null, reviewerName: null, status: null, assignedAt: null, dueDate: null };
       }
@@ -1011,7 +1028,9 @@ export function useReviewWorkflow({
    */
   const reassignReviewer = useCallback(async (newReviewerId: string, newReviewerName: string): Promise<boolean> => {
     try {
-      const supabase = getServiceRoleClient() || getSupabaseClient();
+      const supabase = (tableName === 'marketplace_services')
+        ? supabase2
+        : (getServiceRoleClient() || getSupabaseClient());
       if (!supabase) {
         throw new Error('Database connection unavailable');
       }
@@ -1107,7 +1126,10 @@ export function useReviewWorkflow({
    */
   const getEligibleReviewers = useCallback(async (): Promise<ReviewerCandidate[]> => {
     try {
-      const supabase = getServiceRoleClient() || getSupabaseClient();
+      const supabase = (tableName === 'marketplace_services')
+        ? supabase2
+        : (getServiceRoleClient() || getSupabaseClient());
+
       if (!supabase) {
         return [];
       }
@@ -1118,7 +1140,7 @@ export function useReviewWorkflow({
         .select('organization_id')
         .eq('id', itemId)
         .maybeSingle();
-      
+
       const contentOrganizationId = contentData?.organization_id || null;
 
       return await findAndRankReviewers(supabase, contentOrganizationId);
@@ -1133,7 +1155,9 @@ export function useReviewWorkflow({
    */
   const resolveComment = useCallback(async (commentId: string): Promise<boolean> => {
     try {
-      const supabase = getServiceRoleClient() || getSupabaseClient();
+      const supabase = (tableName === 'marketplace_services')
+        ? supabase2
+        : (getServiceRoleClient() || getSupabaseClient());
       if (!supabase) {
         throw new Error('Database connection unavailable');
       }
@@ -1144,7 +1168,7 @@ export function useReviewWorkflow({
       }
 
       // Determine comment table
-      const isServiceComment = tableName === 'mktplc_services';
+      const isServiceComment = tableName === 'mktplc_services' || tableName === 'marketplace_services';
       const commentTable = isServiceComment ? 'mktplc_service_comments' : 'wf_review_comments';
 
       const { error } = await supabase
@@ -1182,13 +1206,16 @@ export function useReviewWorkflow({
    */
   const hasUnresolvedRejections = useCallback(async (): Promise<boolean> => {
     try {
-      const supabase = getServiceRoleClient() || getSupabaseClient();
+      const supabase = (tableName === 'marketplace_services')
+        ? supabase2
+        : (getServiceRoleClient() || getSupabaseClient());
+
       if (!supabase) {
         return false;
       }
 
       // Determine comment table
-      const isServiceComment = tableName === 'mktplc_services';
+      const isServiceComment = tableName === 'mktplc_services' || tableName === 'marketplace_services';
       const commentTable = isServiceComment ? 'mktplc_service_comments' : 'wf_review_comments';
       const foreignKeyField = isServiceComment ? 'service_id' : 'content_id';
 

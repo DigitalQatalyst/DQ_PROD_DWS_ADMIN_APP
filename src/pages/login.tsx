@@ -1,6 +1,5 @@
-import React from 'react';
-import { AzureLogin } from '../components/AzureLogin';
+import { DummyLogin } from '../components/DummyLogin';
 
 export default function LoginPage() {
-  return <AzureLogin />;
+  return <DummyLogin />;
 }

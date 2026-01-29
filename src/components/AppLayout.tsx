@@ -7,6 +7,7 @@ import { SearchBar } from './SearchBar';
 import { NotificationsDropdown } from './NotificationsDropdown';
 import { UserProfileDropdown } from './UserProfileDropdown';
 import { QuickActionsMenu } from './QuickActionsMenu';
+import { useAuth } from '../context/AuthContext';
 
 // Mock data - to be replaced with actual database calls
 const companies: any[] = [];
@@ -38,7 +39,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         'content-management': '/content-management',
         'service-management': '/service-management',
       };
-      
+
       if (routeMap[sectionId]) {
         navigate(routeMap[sectionId]);
       } else {
@@ -47,24 +48,20 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     }
   };
 
-  const mockUser = {
-    name: 'Admin User',
-    email: 'admin@example.com',
-    role: 'Administrator'
-  };
+  const { user } = useAuth();
   return <div className="flex flex-col min-h-screen bg-gray-100">
-      <Header toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen}>
-        <div className="flex items-center space-x-4">
-          <SearchBar />
-          <NotificationsDropdown />
-          <UserProfileDropdown user={mockUser} />
-        </div>
-      </Header>
-      <div className="flex flex-1">
-        <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} activeSection={activeSection} onSectionChange={handleSectionChange} onboardingComplete={true} companies={companies} onCompanyChange={id => console.log('Company changed:', id)} onAddNewEnterprise={() => console.log('Add new enterprise')} isLoggedIn={true} />
-        <main className="flex-1 overflow-auto">{children}</main>
+    <Header toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen}>
+      <div className="flex items-center space-x-4">
+        <SearchBar />
+        <NotificationsDropdown />
+        <UserProfileDropdown user={user} />
       </div>
-      <Footer isLoggedIn={true} />
-      <QuickActionsMenu />
-    </div>;
+    </Header>
+    <div className="flex flex-1">
+      <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} activeSection={activeSection} onSectionChange={handleSectionChange} onboardingComplete={true} companies={companies} onCompanyChange={id => console.log('Company changed:', id)} onAddNewEnterprise={() => console.log('Add new enterprise')} isLoggedIn={true} />
+      <main className="flex-1 overflow-auto">{children}</main>
+    </div>
+    <Footer isLoggedIn={true} />
+    <QuickActionsMenu />
+  </div>;
 };

@@ -14,14 +14,7 @@
 
 import { AbilityBuilder, createMongoAbility } from '@casl/ability';
 import { UserRole, UserSegment } from '../types';
-import { 
-  Actions as CanonicalActions, 
-  Subjects as CanonicalSubjects,
-  RolePermissions,
-  type Action,
-  type Subject,
-  type AppAbility as SharedAppAbility
-} from '../shared/permissions';
+import { Action, Subject, RolePermissions, AppAbility as SharedAppAbility } from '../shared/permissions';
 
 // Re-export shared types as local types for backward compatibility
 export type Actions = Action;
@@ -73,7 +66,7 @@ export function buildAbility(user: UserContext): AppAbility {
 
   // Apply permissions based on role from shared registry
   // Note: We apply roles directly here to match the canonical permissions
-  
+
   const crudSubjects = ['Service', 'Content', 'Business', 'Zone', 'GrowthArea'] as Subject[];
   const conditions = user_segment === 'internal' ? undefined : { organization_id: organizationId };
 
@@ -92,7 +85,7 @@ export function buildAbility(user: UserContext): AppAbility {
         can('read', crudSubjects);
         can('update', crudSubjects, conditions);
         can('approve', ['Content', 'Service'] as Subject[], conditions); // Can approve but not publish
-        can('unpublish', ['Content', 'Service'] as Subject[], conditions);
+        can('publish', ['Content', 'Service'] as Subject[], conditions);
         can('archive', ['Content', 'Service'] as Subject[], conditions);
         // Explicitly deny publish for Partner Admin
         cannot('publish', ['Content', 'Service'] as Subject[]);
@@ -117,6 +110,18 @@ export function buildAbility(user: UserContext): AppAbility {
         // Partner Approver: Can approve but NOT publish
         cannot('publish', ['Content', 'Service'] as Subject[]);
       }
+      break;
+
+    case 'hr':
+      can('read', 'Service');
+      can('update', 'Service', conditions);
+      cannot('read', ['Content', 'Business', 'Zone', 'GrowthArea'] as Subject[]);
+      break;
+
+    case 'content':
+      can('read', 'Content');
+      can('update', 'Content', conditions);
+      cannot('read', ['Service', 'Business', 'Zone', 'GrowthArea'] as Subject[]);
       break;
 
     case 'viewer':
@@ -260,7 +265,7 @@ export function canAccessModule(ability: AppAbility, module: string): boolean {
  */
 export function getSubjectPermissions(ability: AppAbility, subject: Subjects): Actions[] {
   const actions: Actions[] = ['create', 'read', 'update', 'delete', 'approve', 'manage'];
-  
+
   return actions.filter(action => ability.can(action, subject));
 }
 
@@ -274,12 +279,12 @@ export function getAccessDeniedMessage(user: UserContext): string {
   if (!user.user_segment) {
     return `Access denied: Missing user segment claim. Please contact support to configure proper Azure claims for your account.`;
   }
-  
+
   const validTypes = ['internal', 'partner', 'customer', 'advisor'];
   if (!validTypes.includes(user.user_segment)) {
     return `Access denied: Invalid user segment "${user.user_segment}". Valid segments: ${validTypes.join(', ')}. Please contact support.`;
   }
-  
+
   return `Access denied: Insufficient permissions. Please contact support if you believe this is an error.`;
 }
 

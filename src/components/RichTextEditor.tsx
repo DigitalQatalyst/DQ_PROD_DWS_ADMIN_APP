@@ -21,7 +21,7 @@ export default function RichTextEditor({
   className = '',
   onUploadImage,
 }: Props) {
-  const editorRef = useRef<any>(null)
+  const [editorInstance, setEditorInstance] = useState<any>(null)
   const lastEmittedHtmlRef = useRef<string>('')
   const isApplyingFromProps = useRef(false)
   const [mounted, setMounted] = useState(false)
@@ -43,20 +43,20 @@ export default function RichTextEditor({
 
   // Update editor when external valueHtml changes
   useEffect(() => {
-    if (!mounted || !editorRef.current || isApplyingFromProps.current) return
+    if (!mounted || !editorInstance || isApplyingFromProps.current) return
 
-    const editor = editorRef.current
+    const editor = editorInstance
     if (!editor) return
 
     const html = valueHtml || ''
-    
+
     // Skip if it's our own echo
     if (lastEmittedHtmlRef.current !== '' && html === lastEmittedHtmlRef.current) {
       return
     }
 
     const currentHtml = editor.getData()
-    
+
     // Update if HTML actually changed
     // This handles both initial load and updates when editing
     if (currentHtml !== html) {
@@ -67,7 +67,7 @@ export default function RichTextEditor({
         isApplyingFromProps.current = false
       }, 50)
     }
-  }, [valueHtml, mounted])
+  }, [valueHtml, mounted, editorInstance])
 
   const handleEditorChange = (_event: any, editor: any) => {
     // Don't process if we're applying data from props
@@ -108,7 +108,7 @@ export default function RichTextEditor({
         setUploading(true)
         try {
           const file = await loader.file
-          
+
           let imageUrl: string
           if (onUploadImage) {
             imageUrl = await onUploadImage(file)
@@ -217,7 +217,7 @@ export default function RichTextEditor({
 
   // Setup image upload adapter when editor is ready
   const handleEditorReady = (editor: any) => {
-    editorRef.current = editor
+    setEditorInstance(editor)
 
     // Configure image upload adapter
     editor.plugins.get('FileRepository').createUploadAdapter = (loader: any) => {

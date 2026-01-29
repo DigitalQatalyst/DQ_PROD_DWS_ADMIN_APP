@@ -13,7 +13,7 @@ import { logger } from '../utils/logger';
 const ENV = import.meta.env.VITE_ENVIRONMENT || 'dev';
 const USE_MOCK_AUTH = import.meta.env.VITE_USE_MOCK_AUTH === 'true';
 
-const fetchWithNoStore = (input: RequestInfo, init?: RequestInit) => {
+const fetchWithNoStore = (input: any, init?: any) => {
   const headers = new Headers(init?.headers ?? {});
   if (!headers.has('cache-control')) {
     headers.set('cache-control', 'no-cache');
@@ -79,10 +79,10 @@ class SupabaseAdapter implements DatabaseClient {
       const customerType = localStorage.getItem('azure_customer_type') || 'staff';
       const userRole = localStorage.getItem('azure_user_role') || 'viewer';
       const organisationName = localStorage.getItem('azure_organisation_name');
-      
+
       if (userInfoStr) {
         const user = JSON.parse(userInfoStr);
-        
+
         // Create JWT payload with correct claims for RLS
         // The RLS policy expects 'organization_name' claim
         const jwtPayload = {
@@ -102,7 +102,7 @@ class SupabaseAdapter implements DatabaseClient {
           iat: Math.floor(Date.now() / 1000),
           exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
         };
-        
+
         // Unicode-safe base64 encoding helper
         // btoa() only supports Latin1, so we need to convert UTF-8 to bytes first
         const base64Encode = (str: string): string => {
@@ -118,14 +118,14 @@ class SupabaseAdapter implements DatabaseClient {
             return btoa(unescape(encodeURIComponent(str)));
           }
         };
-        
+
         // Encode as base64 JWT (simplified - real JWT would be signed)
         const header = base64Encode(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
         const payload = base64Encode(JSON.stringify(jwtPayload));
         const signature = base64Encode('mock-signature-for-rls');
-        
+
         const jwtToken = `${header}.${payload}.${signature}`;
-        
+
         console.log('🔑 Created JWT token with claims:', {
           sub: jwtPayload.sub,
           customerType: jwtPayload.customerType,
@@ -133,10 +133,10 @@ class SupabaseAdapter implements DatabaseClient {
           organization_name: jwtPayload.organization_name,
           organisationName: jwtPayload.organisationName
         });
-        
+
         return jwtToken;
       }
-      
+
       return null;
     } catch (error) {
       console.error('Error getting current JWT:', error);
@@ -152,37 +152,37 @@ class SupabaseAdapter implements DatabaseClient {
       // Debug: Log all localStorage keys to understand what's available
       const allKeys = Object.keys(localStorage);
       console.log('🔍 All localStorage keys:', allKeys);
-      
+
       // Try multiple possible key names for Azure user info
-      const userInfoStr = localStorage.getItem('azure_user_info') || 
-                         localStorage.getItem('platform_admin_user') ||
-                         localStorage.getItem('user_info');
-      
+      const userInfoStr = localStorage.getItem('azure_user_info') ||
+        localStorage.getItem('platform_admin_user') ||
+        localStorage.getItem('user_info');
+
       // Try multiple possible key names for organization name
       const organisationName = localStorage.getItem('azure_organisation_name') ||
-                              localStorage.getItem('azure_organisationName') ||
-                              localStorage.getItem('organization_name') ||
-                              localStorage.getItem('user_organization_id') ||
-                              localStorage.getItem('organisationName');
-      
+        localStorage.getItem('azure_organisationName') ||
+        localStorage.getItem('organization_name') ||
+        localStorage.getItem('user_organization_id') ||
+        localStorage.getItem('organisationName');
+
       // Try multiple possible key names for customer type
-      const customerType = localStorage.getItem('azure_customer_type') || 
-                          localStorage.getItem('customer_type') ||
-                          localStorage.getItem('customerType') ||
-                          localStorage.getItem('user_segment') ||
-                          'staff';
-      
+      const customerType = localStorage.getItem('azure_customer_type') ||
+        localStorage.getItem('customer_type') ||
+        localStorage.getItem('customerType') ||
+        localStorage.getItem('user_segment') ||
+        'staff';
+
       // Try multiple possible key names for user role
-      const userRole = localStorage.getItem('azure_user_role') || 
-                      localStorage.getItem('user_role') ||
-                      localStorage.getItem('userRole') ||
-                      'viewer';
-      
+      const userRole = localStorage.getItem('azure_user_role') ||
+        localStorage.getItem('user_role') ||
+        localStorage.getItem('userRole') ||
+        'viewer';
+
       // Try to get user ID from multiple sources
       const userId = localStorage.getItem('user_id') ||
-                    localStorage.getItem('azure_user_id') ||
-                    localStorage.getItem('userId');
-      
+        localStorage.getItem('azure_user_id') ||
+        localStorage.getItem('userId');
+
       console.log('🔍 Attempting to set session with:', {
         foundUserInfo: !!userInfoStr,
         foundOrgName: !!organisationName,
@@ -191,13 +191,13 @@ class SupabaseAdapter implements DatabaseClient {
         userRole,
         userId
       });
-      
+
       if (userInfoStr && organisationName) {
         const user = JSON.parse(userInfoStr);
-        
+
         // Use user ID from parsed object or from localStorage
         const finalUserId = user.id || user.user_id || user.azure_id || userId;
-        
+
         // Create a JWT payload with the necessary claims for RLS
         const jwtPayload = {
           aud: this.supabaseUrl,
@@ -210,9 +210,9 @@ class SupabaseAdapter implements DatabaseClient {
           exp: Math.floor(Date.now() / 1000) + 3600, // 1 hour expiry
           iat: Math.floor(Date.now() / 1000)
         };
-        
+
         console.log('🔑 Creating Supabase JWT with RLS claims:', jwtPayload);
-        
+
         // Unicode-safe base64url encoding helper
         // btoa() only supports Latin1, so we need to convert UTF-8 to bytes first
         const base64Encode = (str: string): string => {
@@ -228,7 +228,7 @@ class SupabaseAdapter implements DatabaseClient {
             return btoa(unescape(encodeURIComponent(str)));
           }
         };
-        
+
         // Encode the JWT using base64url (not base64)
         const base64urlEncode = (str: string) => {
           return base64Encode(str)
@@ -236,14 +236,14 @@ class SupabaseAdapter implements DatabaseClient {
             .replace(/\//g, '_')
             .replace(/=/g, '');
         };
-        
+
         const header = base64urlEncode(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
         const payload = base64urlEncode(JSON.stringify(jwtPayload));
         const signature = base64urlEncode('supabase-rls-session');
         const jwtToken = `${header}.${payload}.${signature}`;
-        
+
         console.log('🔑 Generated JWT token, attempting to set session...');
-        
+
         // TEMPORARY: Skip JWT session setting to avoid infinite loop
         // TODO: Implement proper JWT authentication for Supabase RLS
         console.log('⚠️ Skipping JWT session setting to prevent infinite loop');
@@ -253,7 +253,7 @@ class SupabaseAdapter implements DatabaseClient {
           customer_type: customerType,
           user_role: userRole
         });
-        
+
         logger.debug('Setting up Supabase RLS with Azure claims');
         logger.debug('Organization:', organisationName);
         logger.debug('Customer Type:', customerType);
@@ -550,21 +550,21 @@ function initializeDbClient(): DatabaseClient {
     VITE_ENVIRONMENT: import.meta.env.VITE_ENVIRONMENT,
     ENV: ENV
   });
-  
+
   // Always try Supabase first if credentials are available
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-  if (supabaseUrl && supabaseKey && 
-      !supabaseUrl.includes('your-project') && 
-      !supabaseUrl.includes('your-actual')) {
+  if (supabaseUrl && supabaseKey &&
+    !supabaseUrl.includes('your-project') &&
+    !supabaseUrl.includes('your-actual')) {
     console.log('✅ Using SupabaseAdapter');
     return new SupabaseAdapter(supabaseUrl, supabaseKey);
   } else {
     // For production, use env var directly (same normalization as apiConfig)
     const envUrl = import.meta.env.VITE_API_BASE_URL;
     let apiBaseUrl = envUrl || '/api';
-    
+
     if (envUrl) {
       if (!/^https?:\/\//i.test(apiBaseUrl) && !apiBaseUrl.startsWith('/')) {
         apiBaseUrl = '/' + apiBaseUrl;
@@ -615,15 +615,15 @@ export function getSupabaseClient(): SupabaseClient | null {
   if (dbClient instanceof SupabaseAdapter) {
     return dbClient.getClient();
   }
-  
+
   // Even if using AzureAdapter, we may still need Supabase for auth
   // Try to create a client if Supabase credentials are available
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-  
-  if (supabaseUrl && supabaseKey && 
-      !supabaseUrl.includes('your-project') && 
-      !supabaseUrl.includes('your-actual')) {
+
+  if (supabaseUrl && supabaseKey &&
+    !supabaseUrl.includes('your-project') &&
+    !supabaseUrl.includes('your-actual')) {
     try {
       return createClient(supabaseUrl, supabaseKey, {
         auth: {
@@ -639,8 +639,63 @@ export function getSupabaseClient(): SupabaseClient | null {
       return null;
     }
   }
-  
+
   console.warn('⚠️ Supabase client not available. Ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in your environment variables.');
+  return null;
+}
+
+/**
+ * Get the second Supabase client for direct access
+ */
+export function getSupabaseClient2(): SupabaseClient | null {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL_2;
+  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY_2;
+
+  if (supabaseUrl && supabaseKey) {
+    try {
+      return createClient(supabaseUrl, supabaseKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        },
+        global: {
+          fetch: fetchWithNoStore,
+        },
+      });
+    } catch (error) {
+      console.error('Failed to create secondary Supabase client:', error);
+      return null;
+    }
+  }
+
+  console.warn('⚠️ Secondary Supabase client not available. Ensure VITE_SUPABASE_URL_2 and VITE_SUPABASE_ANON_KEY_2 are set.');
+  return null;
+}
+
+/**
+ * Get the second Supabase client with service role for direct access
+ */
+export function getServiceRoleClient2(): SupabaseClient | null {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL_2;
+  const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY_2 || import.meta.env.SUPABASE_SERVICE_ROLE_KEY_2;
+
+  if (supabaseUrl && serviceKey) {
+    try {
+      return createClient(supabaseUrl, serviceKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        },
+        global: {
+          fetch: fetchWithNoStore,
+        },
+      });
+    } catch (error) {
+      console.error('Failed to create secondary service-role Supabase client:', error);
+      return null;
+    }
+  }
+
   return null;
 }
 

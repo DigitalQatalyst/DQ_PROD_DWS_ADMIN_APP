@@ -8,6 +8,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import apiClient from '../lib/apiClient';
 import { getSupabaseClient, setSupabaseSession, logAuthDebugInfo } from '../lib/dbClient';
+import { supabase2 } from '../lib/supabase2';
 import { FilterOptions, PaginationOptions, PaginatedResponse } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useAbility } from './useAbility';
@@ -30,16 +31,20 @@ interface CRUDOperations<T> {
   refresh: () => Promise<void>;
 }
 
-export function useCRUD<T extends { id: string }>(tableName: string): CRUDOperations<T> {
+export function useCRUD<T extends { id: string }>(initialTableName: string): CRUDOperations<T> {
+  // Map mktplc_services to marketplace_services and flag for supabase2
+  const isMarketplace = initialTableName === 'mktplc_services' || initialTableName === 'marketplace_services';
+  const tableName = isMarketplace ? 'marketplace_services' : initialTableName;
+
   const [data, setData] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [total, setTotal] = useState(0);
   const [lastFilters, setLastFilters] = useState<FilterOptions | undefined>();
   const [lastPagination, setLastPagination] = useState<PaginationOptions | undefined>();
-  
+
   const { ability, isLoading: authLoading } = useAuth();
-  
+
   // Map table names to CASL subjects
   const getSubjectFromTableName = (table: string): Subjects => {
     const tableMap: Record<string, Subjects> = {
@@ -51,7 +56,7 @@ export function useCRUD<T extends { id: string }>(tableName: string): CRUDOperat
     };
     return tableMap[table] || 'Content'; // Return Content as default if not mapped
   };
-  
+
   const subject = getSubjectFromTableName(tableName);
 
   /**
@@ -61,14 +66,14 @@ export function useCRUD<T extends { id: string }>(tableName: string): CRUDOperat
     async (filters?: FilterOptions, pagination?: PaginationOptions) => {
       logger.debug(`useCRUD.list() called for table: ${tableName}, subject: ${subject}`);
       logger.debug(`authLoading: ${authLoading}, ability.can('read', '${subject}'): ${ability.can('read', subject)}`);
-      
+
       // If auth is still loading, abort early - component should retry when auth is ready
       if (authLoading) {
         logger.warn('Auth still loading, aborting fetch. Component should retry when auth is ready.');
         setLoading(false);
         return;
       }
-      
+
       // Check CASL permission for read access
       if (!ability.can('read', subject)) {
         logger.error(`Permission denied: Cannot read ${subject}. Ability rules:`, ability.rules);
@@ -78,7 +83,7 @@ export function useCRUD<T extends { id: string }>(tableName: string): CRUDOperat
         setLoading(false);
         return;
       }
-      
+
       logger.success(`Permission granted, proceeding with query...`);
 
       setLoading(true);
@@ -90,27 +95,29 @@ export function useCRUD<T extends { id: string }>(tableName: string): CRUDOperat
 
       try {
         // Set Supabase session with current JWT token
-        await setSupabaseSession();
-        
-        const supabase = getSupabaseClient();
+        if (!isMarketplace) {
+          await setSupabaseSession();
+        }
+
+        const supabase = isMarketplace ? supabase2 : getSupabaseClient();
         if (!supabase) {
           throw new Error('Supabase client not available');
         }
-        
+
         // Debug: Check current auth state
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         logger.debug('Current Supabase session:', session);
         logger.debug('Session error:', sessionError);
-        
+
         // Debug: Check localStorage for user context
         const organizationId = localStorage.getItem('user_organization_id');
         const orgName = localStorage.getItem('azure_organisation_name'); // For display only
         const userSegment = localStorage.getItem('user_segment');
         logger.debug('User context in localStorage:', { organizationId, orgName, userSegment });
-        
+
         // Build the query
         let query = supabase.from(tableName).select('*');
-        
+
         // Apply organization filter - skip for internal users (they should see everything)
         logger.debug(`🔍 Query Filter Decision:`, {
           organizationId,
@@ -118,7 +125,7 @@ export function useCRUD<T extends { id: string }>(tableName: string): CRUDOperat
           tableName,
           willApplyOrgFilter: organizationId && userSegment !== 'internal'
         });
-        
+
         if (organizationId && userSegment !== 'internal') {
           // Check if table has organization_id column
           const orgScopedTables = ['cnt_contents', 'eco_business_directory', 'eco_growth_areas', 'mktplc_services'];
@@ -231,11 +238,11 @@ export function useCRUD<T extends { id: string }>(tableName: string): CRUDOperat
         const fetchedData = result.data as T[] || [];
         logger.debug(`Fetched ${fetchedData.length} records from ${tableName}:`, fetchedData);
         setData(fetchedData);
-        
+
         // Note: Supabase doesn't return total count by default with range
         // You'd need a separate count query for accurate pagination
         setTotal(fetchedData.length);
-        
+
         // Debug logging for RLS verification
         logAuthDebugInfo(tableName, fetchedData.length, filters);
       } catch (err) {
@@ -274,14 +281,16 @@ export function useCRUD<T extends { id: string }>(tableName: string): CRUDOperat
       // Use Supabase for all tables
 
       try {
-        // Set Supabase session with current JWT token
-        await setSupabaseSession();
-        
-        const supabase = getSupabaseClient();
+        // Set Supabase session if not marketplace
+        if (!isMarketplace) {
+          await setSupabaseSession();
+        }
+
+        const supabase = isMarketplace ? supabase2 : getSupabaseClient();
         if (!supabase) {
           throw new Error('Supabase client not available');
         }
-        
+
         const result = await supabase.from(tableName).select('*').eq('id', id).single();
 
         if (result.error) {
@@ -302,75 +311,77 @@ export function useCRUD<T extends { id: string }>(tableName: string): CRUDOperat
   );
 
 
-const create = useCallback(
-  async (newData: Partial<T>): Promise<T | null> => {
-    if (!ability.can('create', subject)) {
-      setError(new Error(`You don't have permission to create ${subject.toLowerCase()}s`));
-      setLoading(false);
-      return null;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const organizationId = localStorage.getItem('user_organization_id');
-      const userId = localStorage.getItem('user_id') || null;
-      const userSegment = localStorage.getItem('user_segment');
-
-      const dataWithTimestamp = {
-        ...newData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      const orgScopedTables = ['cnt_contents', 'eco_business_directory', 'eco_growth_areas', 'mktplc_services'];
-      if (orgScopedTables.includes(tableName) && organizationId && userSegment !== 'internal') {
-        (dataWithTimestamp as any).organization_id = organizationId;
-      } else if (userSegment === 'internal' && organizationId) {
-        (dataWithTimestamp as any).organization_id = organizationId;
+  const create = useCallback(
+    async (newData: Partial<T>): Promise<T | null> => {
+      if (!ability.can('create', subject)) {
+        setError(new Error(`You don't have permission to create ${subject.toLowerCase()}s`));
+        setLoading(false);
+        return null;
       }
 
-      if (userId) (dataWithTimestamp as any).created_by = userId;
+      setLoading(true);
+      setError(null);
 
-      // Prefer Supabase; if not configured and table is contents, fallback to API
-      if (tableName === 'cnt_contents' && !getSupabaseClient()) {
-        try {
-          const created = await apiClient.create<any>('contents', newData as any);
-          await refresh();
-          return created as T;
-        } catch (err) {
-          const error = err instanceof Error ? err : new Error('An error occurred');
-          setError(error);
-          logger.error(`Error creating ${tableName} via API fallback:`, error);
-          return null;
-        } finally {
-          setLoading(false);
+      try {
+        const organizationId = localStorage.getItem('user_organization_id');
+        const userId = localStorage.getItem('user_id') || null;
+        const userSegment = localStorage.getItem('user_segment');
+
+        const dataWithTimestamp = {
+          ...newData,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        const orgScopedTables = ['cnt_contents', 'eco_business_directory', 'eco_growth_areas', 'mktplc_services'];
+        if (orgScopedTables.includes(tableName) && organizationId && userSegment !== 'internal') {
+          (dataWithTimestamp as any).organization_id = organizationId;
+        } else if (userSegment === 'internal' && organizationId) {
+          (dataWithTimestamp as any).organization_id = organizationId;
         }
+
+        if (userId) (dataWithTimestamp as any).created_by = userId;
+
+        // Prefer Supabase; if not configured and table is contents, fallback to API
+        if (tableName === 'cnt_contents' && !getSupabaseClient()) {
+          try {
+            const created = await apiClient.create<any>('contents', newData as any);
+            await refresh();
+            return created as T;
+          } catch (err) {
+            const error = err instanceof Error ? err : new Error('An error occurred');
+            setError(error);
+            logger.error(`Error creating ${tableName} via API fallback:`, error);
+            return null;
+          } finally {
+            setLoading(false);
+          }
+        }
+
+        // Use Supabase
+        if (!isMarketplace) {
+          await setSupabaseSession();
+        }
+        const supabase = isMarketplace ? supabase2 : getSupabaseClient();
+        if (!supabase) throw new Error('Supabase client not available');
+
+        const result = await supabase.from(tableName).insert([dataWithTimestamp]).select();
+        if (result.error) throw new Error(result.error.message || 'Failed to create record');
+
+        const createdRecord = result.data?.[0] as T;
+        await refresh();
+        return createdRecord;
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error('An error occurred');
+        setError(error);
+        logger.error(`Error creating ${tableName}:`, error);
+        return null;
+      } finally {
+        setLoading(false);
       }
-
-      // Use Supabase
-      await setSupabaseSession();
-      const supabase = getSupabaseClient();
-      if (!supabase) throw new Error('Supabase client not available');
-
-      const result = await supabase.from(tableName).insert([dataWithTimestamp]).select();
-      if (result.error) throw new Error(result.error.message || 'Failed to create record');
-
-      const createdRecord = result.data?.[0] as T;
-      await refresh();
-      return createdRecord;
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('An error occurred');
-      setError(error);
-      logger.error(`Error creating ${tableName}:`, error);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  },
-  [tableName, ability, subject, refresh]
-);
+    },
+    [tableName, ability, subject, refresh]
+  );
 
 
   /**
@@ -396,10 +407,12 @@ const create = useCallback(
           updated_at: new Date().toISOString(),
         };
 
-        // Set Supabase session with current JWT token
-        await setSupabaseSession();
-        
-        const supabase = getSupabaseClient();
+        // Set Supabase session if not marketplace
+        if (!isMarketplace) {
+          await setSupabaseSession();
+        }
+
+        const supabase = isMarketplace ? supabase2 : getSupabaseClient();
         if (!supabase) {
           throw new Error('Supabase client not available');
         }
@@ -415,12 +428,12 @@ const create = useCallback(
         }
 
         const updatedRecord = result.data?.[0] as T;
-        
+
         // Update local state
         setData(prevData =>
           prevData.map(item => (item.id === id ? updatedRecord : item))
         );
-        
+
         return updatedRecord;
       } catch (err) {
         const error = err instanceof Error ? err : new Error('An error occurred');
@@ -452,10 +465,12 @@ const create = useCallback(
       // Use Supabase for all tables
 
       try {
-        // Set Supabase session with current JWT token
-        await setSupabaseSession();
-        
-        const supabase = getSupabaseClient();
+        // Set Supabase session if not marketplace
+        if (!isMarketplace) {
+          await setSupabaseSession();
+        }
+
+        const supabase = isMarketplace ? supabase2 : getSupabaseClient();
         if (!supabase) {
           throw new Error('Supabase client not available');
         }
@@ -469,7 +484,7 @@ const create = useCallback(
         // Update local state
         setData(prevData => prevData.filter(item => item.id !== id));
         setTotal(prev => Math.max(0, prev - 1));
-        
+
         return true;
       } catch (err) {
         const error = err instanceof Error ? err : new Error('An error occurred');
@@ -499,10 +514,12 @@ const create = useCallback(
           updated_at: timestamp,
         }));
 
-        // Set Supabase session with current JWT token
-        await setSupabaseSession();
-        
-        const supabase = getSupabaseClient();
+        // Set Supabase session if not marketplace
+        if (!isMarketplace) {
+          await setSupabaseSession();
+        }
+
+        const supabase = isMarketplace ? supabase2 : getSupabaseClient();
         if (!supabase) {
           throw new Error('Supabase client not available');
         }
@@ -560,10 +577,12 @@ const create = useCallback(
       setError(null);
 
       try {
-        // Set Supabase session with current JWT token
-        await setSupabaseSession();
-        
-        const supabase = getSupabaseClient();
+        // Set Supabase session if not marketplace
+        if (!isMarketplace) {
+          await setSupabaseSession();
+        }
+
+        const supabase = isMarketplace ? supabase2 : getSupabaseClient();
         if (!supabase) {
           throw new Error('Supabase client not available');
         }
@@ -576,7 +595,7 @@ const create = useCallback(
 
         setData(prevData => prevData.filter(item => !ids.includes(item.id)));
         setTotal(prev => Math.max(0, prev - ids.length));
-        
+
         return true;
       } catch (err) {
         const error = err instanceof Error ? err : new Error('An error occurred');

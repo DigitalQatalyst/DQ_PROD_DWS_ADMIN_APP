@@ -4,9 +4,9 @@ import type React from 'react';
 import type { Location, NavigateFunction } from 'react-router-dom';
 
 import { useCRUD } from '../../../hooks/useCRUD';
-import { getSupabaseClient, setSupabaseSession } from '../../../lib/dbClient';
+import { getSupabaseClient, getSupabaseClient2, getServiceRoleClient2, setSupabaseSession } from '../../../lib/dbClient';
 import { uploadFile } from '../../../lib/storageProvider';
-import { checkSlugExists, createMedia, parseDurationToSeconds, updateMedia } from '../../../services/knowledgehub';
+import { checkSlugExists, createMedia, getGuideById, parseDurationToSeconds, updateMedia } from '../../../services/knowledgehub';
 import {
   CATEGORY_FACET_CODES,
   DEFAULT_CATEGORIES,
@@ -145,12 +145,12 @@ const parseFileSizeToMb = (value: string): number | null => {
     unit === 'b' || unit === 'byte' || unit === 'bytes'
       ? 1 / (1024 * 1024)
       : unit === 'kb' || unit === 'kilobyte' || unit === 'kilobytes'
-      ? 1 / 1024
-      : unit === 'gb' || unit === 'gigabyte' || unit === 'gigabytes'
-      ? 1024
-      : unit === 'tb' || unit === 'terabyte' || unit === 'terabytes'
-      ? 1024 * 1024
-      : 1;
+        ? 1 / 1024
+        : unit === 'gb' || unit === 'gigabyte' || unit === 'gigabytes'
+          ? 1024
+          : unit === 'tb' || unit === 'terabyte' || unit === 'terabytes'
+            ? 1024 * 1024
+            : 1;
 
   const inMb = numeric * factor;
   if (!Number.isFinite(inMb) || inMb <= 0) return null;
@@ -710,7 +710,11 @@ export const useMediaContentFormController = ({
   const setActiveTab = useCallback(
     (key: TabKey) => {
       if (isEditing) return;
-      setFormData((previous) => ({ ...previous, activeTab: key }));
+      setFormData((previous) => ({
+        ...previous,
+        activeTab: key,
+        status: key === 'Guide' ? 'Approved' : 'Draft',
+      }));
     },
     [isEditing]
   );
@@ -940,7 +944,7 @@ export const useMediaContentFormController = ({
 
       if (routeContentId && supabase) {
         // Ensure RLS claims are set for this session before fetching
-        try { await setSupabaseSession(); } catch {}
+        try { await setSupabaseSession(); } catch { }
         logEditFlow('PREFILL_START', {
           routeContentId,
           supabaseUrl: (supabase as any)?.supabaseUrl || (import.meta.env.VITE_SUPABASE_URL || 'n/a'),
@@ -1055,10 +1059,43 @@ export const useMediaContentFormController = ({
             }
             record._facetValues = facetValues;
             record._tags = tags;
+          } else {
+            // Not found in primary DB, try secondary guides
+            logEditFlow('PRIMARY_FETCH_FAILED', { id: routeContentId, error: baseError?.message });
+            const guide = await getGuideById(routeContentId);
+            if (guide) {
+              console.log('✅ Found guide in secondary DB:', guide);
+              record = {
+                ...guide,
+                content: guide.body,
+                featured_image_url: guide.hero_image_url,
+                published_at: guide.last_updated_at,
+                author_name: guide.author_name,
+                author_org: guide.author_org,
+                metadata: {
+                  author_org: guide.author_org,
+                }
+              };
+            }
           }
         } catch (error) {
           logEditFlow('FETCH_ERROR', { id: routeContentId, error: (error as any)?.message || String(error) });
-          console.warn('Could not fetch fresh data, using provided data:', error);
+          console.warn('Exception during fetch, trying secondary guides:', error);
+
+          const guide = await getGuideById(routeContentId);
+          if (guide) {
+            record = {
+              ...guide,
+              content: guide.body,
+              featured_image_url: guide.hero_image_url,
+              published_at: guide.last_updated_at,
+              author_name: guide.author_name,
+              author_org: guide.author_org,
+              metadata: {
+                author_org: guide.author_org,
+              }
+            };
+          }
         }
       }
 
@@ -1079,16 +1116,16 @@ export const useMediaContentFormController = ({
       const activeTab: TabKey = (contentType === 'Video'
         ? 'Video'
         : contentType === 'Podcast'
-        ? 'Podcast'
-        : contentType === 'Report'
-        ? 'Report'
-        : contentType === 'Tool'
-        ? 'Toolkit'
-        : contentType === 'News'
-        ? 'News'
-        : contentType === 'Guide'
-        ? 'Guide'
-        : 'Article');
+          ? 'Podcast'
+          : contentType === 'Report'
+            ? 'Report'
+            : contentType === 'Tool'
+              ? 'Toolkit'
+              : contentType === 'News'
+                ? 'News'
+                : contentType === 'Guide'
+                  ? 'Guide'
+                  : 'Article');
 
       let domainValue = record?.domain || record?.category || '';
       if (record?._facetValues && Array.isArray(record._facetValues)) {
@@ -1101,8 +1138,8 @@ export const useMediaContentFormController = ({
       const categoriesFromMeta = Array.isArray(toolkitMeta.categories)
         ? toolkitMeta.categories
         : domainValue
-        ? [domainValue]
-        : [];
+          ? [domainValue]
+          : [];
       const businessStagesFromMeta: string[] = Array.isArray(toolkitMeta.businessStages)
         ? toolkitMeta.businessStages
         : [];
@@ -1110,12 +1147,12 @@ export const useMediaContentFormController = ({
       const releaseDateValue =
         typeof toolkitMeta.releaseDate === 'string' && toolkitMeta.releaseDate
           ? (() => {
-              try {
-                return new Date(toolkitMeta.releaseDate).toISOString().slice(0, 10);
-              } catch {
-                return toolkitMeta.releaseDate;
-              }
-            })()
+            try {
+              return new Date(toolkitMeta.releaseDate).toISOString().slice(0, 10);
+            } catch {
+              return toolkitMeta.releaseDate;
+            }
+          })()
           : '';
 
       const rawTags: string[] = [];
@@ -1128,10 +1165,11 @@ export const useMediaContentFormController = ({
       const updates = {
         title: record?.title || '',
         slug: record?.slug || '',
+        status: record?.status || (activeTab === 'Guide' ? 'Approved' : 'Draft'),
         activeTab,
         summary: record?.summary || '',
-        content: record?.content || '',
-        authorName: record?.author || record?.author_name || metadata.author_name || '',
+        content: record?.body || record?.content || '',
+        authorName: record?.author_name || record?.author || metadata.author_name || '',
         authorOrg: metadata.author_org || metadata.source || record?.article_source || '',
         authorTitle: metadata.author_title || '',
         authorBio: metadata.author_bio || '',
@@ -1173,11 +1211,21 @@ export const useMediaContentFormController = ({
         toolkitAuthors: Array.isArray(toolkitMeta.authors)
           ? (toolkitMeta.authors as ToolkitAuthor[])
           : [],
+        // Guide specific fields
+        guide_type: record?.guide_type || '',
+        function_area: record?.function_area || '',
+        complexity_level: record?.complexity_level || '',
+        sub_domain: record?.sub_domain || '',
+        unit: record?.unit || '',
+        location: record?.location || '',
+        isEditorsPick: !!record?.is_editors_pick,
+        downloadCount: record?.download_count || 0,
+        downloadUrl: record?.document_url || record?.report_document_url || record?.tool_document_url || '',
       } as const;
       logEditFlow('SET_FORM_DATA', {
         id: routeContentId,
         activeTab: updates.activeTab,
-        hasContent: Boolean((record?.content || '').length),
+        hasContent: Boolean((updates.content || '').length),
         authorName: updates.authorName,
         authorOrg: updates.authorOrg,
         hasAuthorTitle: Boolean(updates.authorTitle),
@@ -1186,7 +1234,7 @@ export const useMediaContentFormController = ({
       });
       setFormData((prev) => ({ ...prev, ...updates }));
 
-      setEditorHtml(record?.content || '');
+      setEditorHtml(updates.content || '');
       setEditorJson(null);
 
       const dedupedTags = Array.from(new Set([...tagsFromMeta, ...rawTags]));
@@ -1217,6 +1265,10 @@ export const useMediaContentFormController = ({
           await fetchAndPrefill(record);
         } else if (stateContent) {
           await fetchAndPrefill(stateContent);
+        } else {
+          // If not found in primary DB (likely a guide), still call fetchAndPrefill
+          // It has its own logic to try the secondary DB if routeContentId is present
+          await fetchAndPrefill({ id: routeContentId });
         }
       })();
     } else if (stateContent) {
@@ -1273,7 +1325,7 @@ export const useMediaContentFormController = ({
 
     if (!routeContentId && formData.slug) {
       try {
-        const slugExists = await checkSlugExists(formData.slug);
+        const slugExists = await checkSlugExists(formData.slug, formData.activeTab === 'Guide');
         if (slugExists) {
           next.slug = 'This slug already exists. Please use a different title.';
         }
@@ -1304,8 +1356,9 @@ export const useMediaContentFormController = ({
       sessionStorage.setItem('content-refresh-required', routeContentId);
       sessionStorage.setItem('content-refresh-timestamp', Date.now().toString());
     }
-    navigate('/content-management');
-  }, [navigate, routeContentId]);
+    const path = formData.activeTab === 'Guide' ? '/knowledgehub-management' : '/media-management';
+    navigate(path);
+  }, [navigate, routeContentId, formData.activeTab]);
 
   const isDev = import.meta.env.DEV || import.meta.env.MODE === 'development';
 
@@ -1333,6 +1386,80 @@ export const useMediaContentFormController = ({
 
       console.log('Validation passed, proceeding with', routeContentId ? 'update' : 'create');
 
+      if (formData.activeTab === 'Guide') {
+        try {
+          const supabase2 = getServiceRoleClient2() || getSupabaseClient2();
+          if (!supabase2) throw new Error('Secondary Supabase client not available');
+
+          const guidePayload = {
+            slug: formData.slug,
+            title: formData.title,
+            summary: formData.summary,
+            hero_image_url: formData.featuredImage,
+            status: formData.status || 'Approved',
+            author_name: formData.authorName,
+            author_org: formData.authorOrg,
+            is_editors_pick: formData.isEditorsPick,
+            domain: formData.category || formData.categories[0] || null,
+            guide_type: formData.guide_type || null,
+            function_area: formData.function_area || null,
+            complexity_level: formData.complexity_level || null,
+            body: editorHtml || null,
+            document_url: formData.downloadUrl || documentUpload.uploadedUrl || null,
+            sub_domain: formData.sub_domain || null,
+            unit: formData.unit || null,
+            location: formData.location || null,
+          };
+
+          let id = routeContentId;
+
+          if (isEditing && id) {
+            const { error: updateError } = await supabase2
+              .from('guides')
+              .update(guidePayload)
+              .eq('id', id);
+            if (updateError) throw updateError;
+            console.log('✅ Guide updated in secondary DB');
+          } else {
+            const { data: insertData, error: insertError } = await supabase2
+              .from('guides')
+              .insert([guidePayload])
+              .select('id')
+              .single();
+            if (insertError) throw insertError;
+            id = insertData.id;
+            console.log('✅ Guide created in secondary DB', id);
+          }
+
+          setLastSavedContentId(id);
+          setSubmitting(false);
+          setShowSuccess(true);
+
+          // Clear draft if it was a new creation
+          if (!isEditing) {
+            removeDraft();
+            setDraftRestored(false);
+          }
+
+          // Optional: re-fetch or prefill
+          if (id) {
+            // Need a way to fetch back from secondary DB in fetchAndPrefill
+            // For now just stay on the success state
+          }
+
+          return;
+        } catch (guideError: any) {
+          console.error('❌ Failed to save guide to secondary DB:', guideError);
+          setSubmitting(false);
+          setErrorModal({
+            show: true,
+            message: routeContentId ? 'Guide update failed' : 'Guide creation failed',
+            error: guideError,
+          });
+          return;
+        }
+      }
+
       try {
         await setSupabaseSession();
 
@@ -1351,8 +1478,8 @@ export const useMediaContentFormController = ({
                 ? formData.tags
                 : null
               : selectedStages && selectedStages.length > 0
-              ? selectedStages
-              : null,
+                ? selectedStages
+                : null,
           domain: formData.category || formData.categories[0] || null,
           categories: formData.categories.length ? formData.categories : null,
           business_stage: selectedStages.length ? selectedStages : null,
@@ -1416,9 +1543,9 @@ export const useMediaContentFormController = ({
               const fileSizeMb = parseFileSizeToMb(formData.fileSize);
               const releaseDateIso = formData.toolkitReleaseDate
                 ? (() => {
-                    const parsed = new Date(formData.toolkitReleaseDate);
-                    return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
-                  })()
+                  const parsed = new Date(formData.toolkitReleaseDate);
+                  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+                })()
                 : null;
               return {
                 type: canonicalType,
@@ -1453,9 +1580,9 @@ export const useMediaContentFormController = ({
           if (formData.activeTab !== 'Toolkit') return null;
           const releaseDateIso = formData.toolkitReleaseDate
             ? (() => {
-                const parsed = new Date(formData.toolkitReleaseDate);
-                return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
-              })()
+              const parsed = new Date(formData.toolkitReleaseDate);
+              return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+            })()
             : null;
           return {
             categories: formData.categories,
@@ -1535,7 +1662,7 @@ export const useMediaContentFormController = ({
               returnedId: id,
               matchesRouteId: id === routeContentId,
             });
-          setLastSavedContentId(id);
+            setLastSavedContentId(id);
           } catch (error: any) {
             logSaveFlow('UPDATE_ERROR', {
               error: error?.message || String(error),
@@ -1715,7 +1842,7 @@ export const useMediaContentFormController = ({
           setShowSuccess(true);
 
           logSaveFlow('CREATE_COMPLETE', { contentId: id });
-            setLastSavedContentId(id);
+          setLastSavedContentId(id);
         }
       } catch (error: any) {
         setSubmitting(false);

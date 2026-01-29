@@ -5,7 +5,7 @@
 
 // User and Authentication Types
 export type UserSegment = 'internal' | 'partner' | 'customer' | 'advisor';
-export type UserRole = 'admin' | 'editor' | 'approver' | 'viewer';
+export type UserRole = 'admin' | 'editor' | 'approver' | 'viewer' | 'hr' | 'content';
 
 export interface User {
   id: string;
@@ -58,6 +58,40 @@ export interface Service {
   comments?: Comment[];
   activityLog?: ActivityLogEntry[];
 }
+
+export type ExperienceCenterRequestType = 'Tech Support' | 'Leave' | 'WFH';
+
+export interface BaseServiceRequest {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+  status: 'Pending' | 'Approved' | 'Rejected' | 'In Progress' | 'Completed';
+  request_type: ExperienceCenterRequestType;
+}
+
+export interface TechSupportRequest extends BaseServiceRequest {
+  subject: string;
+  description: string;
+  priority: 'Low' | 'Medium' | 'High' | 'Urgent';
+  category: string;
+}
+
+export interface LeaveRequest extends BaseServiceRequest {
+  leave_type: string;
+  start_date: string;
+  end_date: string;
+  reason: string;
+  duration_days: number;
+}
+
+export interface WFHRequest extends BaseServiceRequest {
+  start_date: string;
+  end_date: string;
+  reason: string;
+}
+
+export type ExperienceCenterRequest = TechSupportRequest | LeaveRequest | WFHRequest;
 
 export interface PartnerInfo {
   name: string;
@@ -288,7 +322,7 @@ export interface ToolkitContentDetails {
 export interface Content {
   id: string;
   title: string;
-  type: 'Article' | 'Event' | 'Resource' | 'Banner' | 'Page' | 'Campaign' | 'Email';
+  type: 'Article' | 'Event' | 'Resource' | 'Banner' | 'Page' | 'Campaign' | 'Email' | 'Guide' | 'Video' | 'Podcast' | 'Report' | 'Tool';
   status: 'Draft' | 'Pending Review' | 'Published' | 'Archived' | 'Rejected';
   author: string;
   lastModified: string;

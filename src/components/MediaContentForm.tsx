@@ -17,6 +17,7 @@ import { ArticleEditorSection } from './media-content-form/sections/ArticleEdito
 import { VideoFieldsSection } from './media-content-form/sections/VideoFieldsSection';
 import { PodcastFieldsSection } from './media-content-form/sections/PodcastFieldsSection';
 import { DocumentFieldsSection } from './media-content-form/sections/DocumentFieldsSection';
+import { GuideFieldsSection } from './media-content-form/sections/GuideFieldsSection';
 import { ToolkitFieldsSection } from './media-content-form/sections/ToolkitFieldsSection';
 import { BreadcrumbHeader } from './media-content-form/sections/BreadcrumbHeader';
 import { ErrorModal } from './media-content-form/sections/ErrorModal';
@@ -117,12 +118,12 @@ export const MediaContentForm: React.FC = () => {
   const selectedCategories = formData.categories && formData.categories.length
     ? formData.categories
     : formData.category
-    ? [formData.category]
-    : [];
+      ? [formData.category]
+      : [];
   const formTags = formData.tags || [];
 
   const renderTypeSpecificSection = () => {
-    if (['Article', 'News', 'Guide'].includes(formData.activeTab)) {
+    if (['Article', 'News'].includes(formData.activeTab)) {
       return (
         <ArticleEditorSection
           editorJson={editorJson}
@@ -131,6 +132,25 @@ export const MediaContentForm: React.FC = () => {
             setEditorState(json, html);
           }}
           errors={errors}
+        />
+      );
+    }
+
+    if (formData.activeTab === 'Guide') {
+      return (
+        <GuideFieldsSection
+          formData={formData}
+          errors={errors}
+          onChange={handleFieldChange}
+          editorJson={editorJson}
+          editorHtml={editorHtml}
+          onEditorChange={(json, html) => {
+            setEditorState(json, html);
+          }}
+          uploadState={documentUpload}
+          onUpload={handleDocumentUpload}
+          onRemove={clearDocumentUpload}
+          fileInputRef={docFileInputRef}
         />
       );
     }
@@ -249,9 +269,7 @@ export const MediaContentForm: React.FC = () => {
   // and saves/updates content. This prevents local state mismatches
   // (e.g. calling `setSubmitting` which is not exposed here).
 
-  const handleCancel = () => {
-    navigate('/content-management');
-  };
+
 
   return (
     <>
@@ -275,30 +293,43 @@ export const MediaContentForm: React.FC = () => {
         isEditing={isEditing}
       />
 
-      <div className="bg-gray-50 py-6 px-4 sm:px-6 min-h-screen">
+      <div className="bg-[#f8fafc] py-10 px-4 sm:px-8 min-h-screen">
         <div className="max-w-5xl mx-auto">
-          <div className="mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {isEditing ? 'Edit Content' : 'Create New Content'}
-            </h1>
-            <p className="mt-1 text-sm text-gray-500">Publish new content</p>
-            {crudError && (
-              <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-sm text-red-600">{crudError.message}</p>
-              </div>
-            )}
-            {!isEditing && draftRestored && (
-              <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-md flex items-center justify-between gap-3">
-                <p className="text-sm text-amber-800">Draft restored. You can continue where you left off.</p>
-                <button
-                  type="button"
-                  onClick={clearDraftAndReset}
-                  className="text-sm text-amber-900 px-2 py-1 border border-amber-300 rounded hover:bg-amber-100"
-                >
-                  Discard draft
-                </button>
-              </div>
-            )}
+          <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+              <nav className="flex mb-4 text-xs font-bold tracking-widest text-blue-600 uppercase" aria-label="Breadcrumb">
+                <ol className="flex items-center space-x-2">
+                  <li><span className="opacity-50">Content Console</span></li>
+                  <li><span className="mx-2 opacity-30">/</span></li>
+                  <li className="text-blue-700">Editor</li>
+                </ol>
+              </nav>
+              <h1 className="text-4xl font-black text-slate-900 tracking-tight">
+                {isEditing ? 'Refine Content' : 'Compose New'}
+              </h1>
+              <p className="mt-2 text-slate-500 font-medium">Craft and publish across the DigitalQatalyst ecosystem</p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {crudError && (
+                <div className="px-4 py-2 bg-red-50 border border-red-100 rounded-xl flex items-center gap-2 animate-in fade-in slide-in-from-right-4">
+                  <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse"></div>
+                  <p className="text-xs font-bold text-red-600 truncate max-w-[200px]">{crudError.message}</p>
+                </div>
+              )}
+              {!isEditing && draftRestored && (
+                <div className="flex items-center gap-2 p-1 bg-amber-50 border border-amber-100 rounded-xl shadow-sm animate-in zoom-in-95">
+                  <span className="pl-3 py-1 text-xs font-bold text-amber-700">Draft Restored</span>
+                  <button
+                    type="button"
+                    onClick={clearDraftAndReset}
+                    className="p-1 px-3 bg-white text-amber-800 text-xs font-bold border border-amber-200 rounded-lg hover:bg-amber-100 transition-all active:scale-95"
+                  >
+                    Discard
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {!isEditing && (
@@ -316,6 +347,12 @@ export const MediaContentForm: React.FC = () => {
               onChange={handleFieldChange}
               onSlugChange={handleSlugChange}
               onSlugRegenerate={regenerateSlug}
+            />
+
+            <AuthorDetailsSection
+              formData={formData}
+              errors={errors}
+              onChange={handleFieldChange}
             />
 
             <ThumbnailClassificationSection
@@ -342,28 +379,31 @@ export const MediaContentForm: React.FC = () => {
               thumbnailFileInputRef={thumbnailFileInputRef}
             />
 
-            <AuthorDetailsSection
-              formData={formData}
-              errors={errors}
-              onChange={handleFieldChange}
-            />
-
-            <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-lg font-medium text-gray-900 flex items-center gap-2">
-                  {tabIcons[formData.activeTab]} {typeLabelMap[formData.activeTab]}
-                </h2>
-                {/* <p className="mt-1 text-sm text-gray-500">
-                  Fields mirror the parent UI. Only supported columns are persisted.
-                </p> */}
+            <div className="bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-[2rem] overflow-hidden border border-slate-100/80 transition-all hover:shadow-[0_20px_40px_rgb(0,0,0,0.06)]">
+              <div className="p-8 border-b border-slate-100 bg-slate-50/30 flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-extrabold text-slate-800 flex items-center gap-3">
+                    <div className="p-2 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-200">
+                      {tabIcons[formData.activeTab]}
+                    </div>
+                    {typeLabelMap[formData.activeTab]} Content
+                  </h2>
+                  <p className="mt-1 text-sm text-slate-400 font-medium ml-12">Configure type-specific parameters</p>
+                </div>
+                <div className="hidden sm:flex items-center gap-2 text-[10px] font-black tracking-widest text-slate-300 uppercase">
+                  <span>Step 04</span>
+                  <div className="h-1 w-8 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full w-full bg-blue-500"></div>
+                  </div>
+                </div>
               </div>
-              <div className="p-6 space-y-6">{renderTypeSpecificSection()}</div>
+              <div className="p-8 space-y-8 bg-white/50 backdrop-blur-sm">{renderTypeSpecificSection()}</div>
             </div>
 
             <FormActions
               isSaving={isSaving}
               isEditing={isEditing}
-              onCancel={handleCancel}
+              onCancel={handleNavigateBack}
               onSubmitButtonClick={() => {
                 console.log('Update button clicked!', {
                   crudLoading,

@@ -1,4 +1,4 @@
-import { getSupabaseClient } from '../lib/dbClient';
+import { getSupabaseClient, getSupabaseClient2, getServiceRoleClient2 } from '../lib/dbClient';
 import { createClient } from '@supabase/supabase-js';
 import type { VMediaAll, KHMediaType } from '../types/knowledgehub';
 
@@ -208,8 +208,83 @@ export async function listMedia(filters: ListMediaFilters = {}): Promise<VMediaA
   return (data || []) as VMediaAll[];
 }
 
-export async function checkSlugExists(slug: string): Promise<boolean> {
+export interface ListGuidesFilters {
+  search?: string;
+  status?: string;
+  domain?: string;
+  limit?: number;
+}
+
+export async function listGuides(filters: ListGuidesFilters = {}): Promise<any[]> {
+  const supabase = getServiceRoleClient2() || getSupabaseClient2();
+  if (!supabase) throw new Error('Secondary Supabase client not available');
+
+  let query = supabase.from('guides').select('*');
+
+  if (filters.status && filters.status !== 'All') {
+    query = query.eq('status', filters.status);
+  }
+
+  if (filters.domain && filters.domain !== 'All') {
+    query = query.eq('domain', filters.domain);
+  }
+
+  if (filters.search) {
+    const searchPattern = `%${filters.search}%`;
+    query = query.or(`title.ilike.${searchPattern},summary.ilike.${searchPattern}`);
+  }
+
+  if (filters.limit) {
+    query = query.limit(filters.limit);
+  }
+
+  query = query.order('last_updated_at', { ascending: false });
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  return (data || []).map(guide => ({
+    ...guide,
+    type: 'Guide', // Canonical type for UI
+  }));
+}
+
+export async function getGuideById(id: string): Promise<any | null> {
+  const supabase = getServiceRoleClient2() || getSupabaseClient2();
+  if (!supabase) throw new Error('Secondary Supabase client not available');
+
+  const { data, error } = await supabase
+    .from('guides')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') return null; // Not found
+    throw error;
+  }
+
+  return {
+    ...data,
+    type: 'Guide',
+  };
+}
+
+export async function checkSlugExists(slug: string, isGuide: boolean = false): Promise<boolean> {
   if (!slug) return false;
+
+  if (isGuide) {
+    const supabase2 = getServiceRoleClient2() || getSupabaseClient2();
+    if (!supabase2) return false;
+    const { data, error } = await supabase2
+      .from('guides')
+      .select('id')
+      .eq('slug', slug)
+      .limit(1);
+    if (error) throw error;
+    return (data?.length || 0) > 0;
+  }
+
   const supabase = getSupabaseClient();
   if (!supabase) throw new Error('Supabase client not available');
 

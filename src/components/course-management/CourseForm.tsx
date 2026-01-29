@@ -30,6 +30,7 @@ export const CourseForm: React.FC = () => {
     rating: 0,
     review_count: 0,
     image_url: '',
+    excerpt: '',
     faq: [] as any[],
   });
 
@@ -53,7 +54,7 @@ export const CourseForm: React.FC = () => {
   const loadLearningPaths = async () => {
     const supabase = getSupabaseClient();
     if (!supabase) return;
-    
+
     const { data } = await supabase.from('lms_learning_paths').select('id, title');
     if (data) setLearningPaths(data);
   };
@@ -80,14 +81,14 @@ export const CourseForm: React.FC = () => {
           outcomes: Array.isArray(data.outcomes) ? data.outcomes : [],
           faq: Array.isArray(data.faq) ? data.faq : [],
         });
-        
+
         // Load associated learning path
         const { data: pathData } = await supabase
           .from('lms_path_items')
           .select('path_id')
           .eq('course_id', courseId)
           .single();
-        
+
         if (pathData) {
           setSelectedLearningPath(pathData.path_id);
         }
@@ -115,7 +116,7 @@ export const CourseForm: React.FC = () => {
     try {
       setUploadingImage(true);
       setUploadProgress(0);
-      
+
       const result = await uploadLMSFileSupabase({
         file,
         courseSlug,
@@ -273,7 +274,7 @@ export const CourseForm: React.FC = () => {
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-6 space-y-6">
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-gray-800 border-b pb-2">Basic Information</h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
@@ -447,6 +448,18 @@ export const CourseForm: React.FC = () => {
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Excerpt (Short Summary) *</label>
+              <textarea
+                required
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                value={formData.excerpt}
+                onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                placeholder="A short summary of the course"
+              />
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
               <textarea
                 required
@@ -487,9 +500,8 @@ export const CourseForm: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                   placeholder="Image URL"
                 />
-                <label className={`px-4 py-2 rounded-lg cursor-pointer ${
-                  uploadingImage ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 hover:bg-gray-200'
-                }`}>
+                <label className={`px-4 py-2 rounded-lg cursor-pointer ${uploadingImage ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 hover:bg-gray-200'
+                  }`}>
                   <UploadIcon className="h-4 w-4 inline mr-2" />
                   {uploadingImage ? `Uploading... ${uploadProgress}%` : 'Upload'}
                   <input

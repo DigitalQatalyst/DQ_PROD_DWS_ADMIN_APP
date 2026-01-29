@@ -354,7 +354,7 @@ export const ReviewCommentsModule: React.FC<ReviewCommentsModuleProps> = ({
         const commentText = `Rejection reason: ${rejectNote.trim()}\n\n@${currentUserName}`;
 
         // Pass metadata for service comments
-        const commentMetadata = tableName === 'mktplc_services' ? {
+        const commentMetadata = tableName === 'mktplc_services' || tableName === 'marketplace_services' ? {
           comment_type: 'Rejection',
           related_status_change: 'Rejected',
           action_type: 'Reject',
@@ -372,7 +372,7 @@ export const ReviewCommentsModule: React.FC<ReviewCommentsModuleProps> = ({
         }
 
         // Only update status if comment was successfully added
-        const mappedStatus = tableName === 'mktplc_services' ? 'Rejected' : 'Rejected';
+        const mappedStatus = tableName === 'mktplc_services' || tableName === 'marketplace_services' ? 'Rejected' : 'Rejected';
         const success = await workflow.transitionStatus('Reject', mappedStatus, currentStatus, {
           reason: rejectNote.trim(),
           notes: rejectNote.trim()
@@ -423,7 +423,7 @@ export const ReviewCommentsModule: React.FC<ReviewCommentsModuleProps> = ({
         const commentText = `Sent back for revision: ${sendBackNote.trim()}\n\n@${currentUserName}`;
 
         // Pass metadata for service comments
-        const commentMetadata = tableName === 'mktplc_services' ? {
+        const commentMetadata = tableName === 'mktplc_services' || tableName === 'marketplace_services' ? {
           comment_type: 'Revision',
           related_status_change: 'Draft',
           action_type: 'Send Back',
@@ -441,7 +441,7 @@ export const ReviewCommentsModule: React.FC<ReviewCommentsModuleProps> = ({
         }
 
         // Only update status if comment was successfully added
-        const mappedStatus = tableName === 'mktplc_services' ? 'Draft' : 'Draft';
+        const mappedStatus = tableName === 'mktplc_services' || tableName === 'marketplace_services' ? 'Draft' : 'Draft';
         const success = await workflow.transitionStatus('Send Back', mappedStatus, currentStatus, {
           reason: sendBackNote.trim(),
           notes: sendBackNote.trim()

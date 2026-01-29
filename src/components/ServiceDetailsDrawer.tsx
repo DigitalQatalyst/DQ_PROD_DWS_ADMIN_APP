@@ -51,7 +51,7 @@ export const ServiceDetailsDrawer: React.FC<ServiceDetailsDrawerProps> = ({
     itemId: service?.id || '',
     itemType: 'service',
     currentStatus: service?.status || '',
-    tableName: 'mktplc_services',
+    tableName: 'marketplace_services',
     onStatusChange: async (newStatus) => {
       if (onRefresh) {
         await onRefresh();
@@ -760,7 +760,7 @@ export const ServiceDetailsDrawer: React.FC<ServiceDetailsDrawerProps> = ({
         canFlag={(ability.can('flag', 'Service') || ability.can('flag', 'Content')) && userSegment === 'internal'}
         comments={safeGet(service, 'comments') || []}
         activityLog={safeGet(service, 'activityLog', 'activity_log') || []}
-        tableName="mktplc_services"
+        tableName="marketplace_services"
         showToast={showToast}
         onStatusChange={async (newStatus) => {
           // Update local service state if available

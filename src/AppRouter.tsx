@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import HomePage from './pages/index';
 import ServiceManagementRoute from './pages/service-management';
 import ContentManagementRoute from './pages/content-management';
+import KnowledgeHubManagementRoute from './pages/knowledgehub-management';
 import CourseManagementRoute from './pages/course-management';
 import LearningPathFormRoute from './pages/learning-path-form';
 import CourseFormRoute from './pages/course-form';
@@ -38,19 +39,25 @@ export function AppRouter() {
       } />
 
       <Route path="/service-management" element={
-        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor']}>
+        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'hr']}>
           <ServiceManagementRoute />
         </ProtectedRoute>
       } />
 
-      <Route path="/content-management" element={
-        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
+      <Route path="/media-management" element={
+        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer', 'content']}>
           <ContentManagementRoute />
         </ProtectedRoute>
       } />
 
+      <Route path="/knowledgehub-management" element={
+        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer', 'content']}>
+          <KnowledgeHubManagementRoute />
+        </ProtectedRoute>
+      } />
+
       <Route path="/course-management" element={
-        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer']}>
+        <ProtectedRoute requiredRoles={['admin', 'approver', 'editor', 'viewer', 'content']}>
           <ContentSegmentGate>
             <CourseManagementRoute />
           </ContentSegmentGate>
@@ -117,13 +124,13 @@ export function AppRouter() {
 
       {/* Form Routes - Require Write Permissions */}
       <Route path="/service-form" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={['admin', 'editor', 'hr']}>
           <ServiceFormRoute />
         </ProtectedRoute>
       } />
 
       <Route path="/service-form/:id" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={['admin', 'editor', 'hr']}>
           <ServiceFormRoute />
         </ProtectedRoute>
       } />
@@ -208,7 +215,7 @@ export function AppRouter() {
       } />
 
       <Route path="/content-form" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={['admin', 'editor', 'content']}>
           <ContentSegmentGate>
             <ContentFormRoute />
           </ContentSegmentGate>
@@ -216,7 +223,7 @@ export function AppRouter() {
       } />
 
       <Route path="/content-form/:contentId" element={
-        <ProtectedRoute requiredRoles={['admin', 'editor']}>
+        <ProtectedRoute requiredRoles={['admin', 'editor', 'content']}>
           <ContentSegmentGate>
             <ContentFormRoute />
           </ContentSegmentGate>

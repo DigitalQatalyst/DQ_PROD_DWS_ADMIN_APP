@@ -9,7 +9,7 @@
  */
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User, UserRole, RolePermissions } from '../types';
+import { User, UserRole, UserSegment, RolePermissions } from '../types';
 import { buildAbility, AppAbility, UserContext, debugUserAbilities } from '../auth/ability';
 import { createMongoAbility } from '@casl/ability';
 import { getInternalJWT, parseInternalJWT, isInternalJWTExpired } from '../lib/federatedAuth';
@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userSegment, setUserSegment] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   // Initialize ability immediately with a minimal empty ability
-  const [ability, setAbility] = useState<AppAbility>(createMongoAbility([]));
+  const [ability, setAbility] = useState<AppAbility>(createMongoAbility([]) as any);
 
   useEffect(() => {
     // Load user from localStorage (simulating session persistence)
@@ -49,30 +49,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         // Check for internal JWT first (federated identity pattern)
         const internalJWT = getInternalJWT();
-        
+
         if (internalJWT && !isInternalJWTExpired(internalJWT)) {
           const internalClaims = parseInternalJWT(internalJWT);
-          
+
           if (internalClaims) {
             console.log('🔄 Loading from internal JWT (federated identity):', {
               user_id: internalClaims.user_id,
               organization_id: internalClaims.organization_id,
               role: internalClaims.role,
-              user_segment: internalClaims.user_segment
+              user_segment: internalClaims.user_segment as UserSegment
             });
-            
+
             // Load user data from localStorage
             const savedUser = localStorage.getItem('platform_admin_user');
-            
+
             if (savedUser) {
               const userData = JSON.parse(savedUser);
               const userRole = internalClaims.role as UserRole;
-              const userSegmentValue = internalClaims.user_segment;
-              
+              const userSegmentValue = internalClaims.user_segment as UserSegment;
+
               setUser(userData);
               setRole(userRole);
               setUserSegment(userSegmentValue);
-              
+
               // Build CASL ability based on internal JWT context
               const userContext: UserContext = {
                 role: userRole,
@@ -80,18 +80,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 organizationId: internalClaims.organization_id,
                 id: internalClaims.user_id,
               };
-              
+
               const userAbility = buildAbility(userContext);
               setAbility(userAbility);
-              
+
               console.log('✅ Loaded federated identity context from internal JWT');
               return;
             }
           }
         }
-        
+
         // Load from user_segment in localStorage (new approach)
-        const userSegmentValue = localStorage.getItem('user_segment');
+        const userSegmentValue = localStorage.getItem('user_segment') as UserSegment;
         const savedUser = localStorage.getItem('platform_admin_user');
         const savedRole = localStorage.getItem('user_role');
 
@@ -99,13 +99,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const userData = JSON.parse(savedUser);
           console.log('🔄 Loading from localStorage - User Segment:', userSegmentValue);
           console.log('🔄 Loading from localStorage - User Role:', savedRole);
-          
+
           const userRole = (savedRole as UserRole) || userData.role || 'viewer';
-          
+
           setUser(userData);
           setRole(userRole);
           setUserSegment(userSegmentValue);
-          
+
           // Build CASL ability based on loaded user context
           const userContext: UserContext = {
             role: userRole,
@@ -113,10 +113,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             organizationId: userData.organization_id || userData.id || 'guest',
             id: userData.id,
           };
-          
+
           const userAbility = buildAbility(userContext);
           setAbility(userAbility);
-          
+
           // Debug user abilities
           debugUserAbilities(userAbility, userContext);
         }
@@ -139,19 +139,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       roleValue
     });
 
-    const userRole = roleValue || userData.role || 'viewer';
-    const segment = userSegmentValue || userData.user_segment || null;
+    // Special handling for dummy users
+    let finalUserData = { ...userData };
+    let finalRole = roleValue as UserRole || userData.role || 'viewer';
+    let finalSegment = userSegmentValue || userData.user_segment || 'internal';
 
-    setUser(userData);
-    setRole(userRole);
-    setUserSegment(segment);
-    
+    if (userData.email === 'admin@test.com') {
+      finalRole = 'admin';
+      finalSegment = 'internal';
+      finalUserData.name = 'Super Admin';
+    } else if (userData.email === 'hr@test.com') {
+      finalRole = 'hr';
+      finalSegment = 'internal';
+      finalUserData.name = 'HR Manager';
+    } else if (userData.email === 'content@test.com') {
+      finalRole = 'content';
+      finalSegment = 'internal';
+      finalUserData.name = 'Content Manager';
+    }
+
+    finalUserData.role = finalRole;
+    finalUserData.user_segment = finalSegment as UserSegment;
+
+    setUser(finalUserData);
+    setRole(finalRole);
+    setUserSegment(finalSegment);
+
     // Build CASL ability based on user context
     const userContext: UserContext = {
-      role: userRole,
-      user_segment: segment,
-      organizationId: userData.organization_id || userData.id,
-      id: userData.id,
+      role: finalRole,
+      user_segment: finalSegment as UserSegment,
+      organizationId: finalUserData.organization_id || finalUserData.id,
+      id: finalUserData.id,
     };
 
     const userAbility = buildAbility(userContext);
@@ -159,28 +178,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Debug user abilities
     debugUserAbilities(userAbility, userContext);
-    
-    // Debug organization mapping
-    console.log('🏢 Organization Mapping Debug:', {
-      'userData.organization_id': userData.organization_id,
-      'userData.id': userData.id,
-      'selected organizationId': userContext.organizationId,
-      'userData.name': userData.name,
-      'userData.email': userData.email
-    });
-    
+
     // Store in localStorage
-    localStorage.setItem('platform_admin_user', JSON.stringify(userData));
-    localStorage.setItem('user_role', userRole);
-    localStorage.setItem('user_segment', segment);
-    
-    console.log('🔐 AuthContext state set:', {
-      user: userData,
-      role: userRole,
-      userSegment: segment,
-      ability: userAbility
-    });
-    
+    localStorage.setItem('platform_admin_user', JSON.stringify(finalUserData));
+    localStorage.setItem('user_role', finalRole);
+    localStorage.setItem('user_segment', finalSegment);
+    if (finalUserData.organization_id) {
+      localStorage.setItem('user_organization_id', finalUserData.organization_id);
+    }
+    localStorage.setItem('user_id', finalUserData.id);
+    localStorage.setItem('user_role', finalRole);
+    localStorage.setItem('user_segment', finalSegment);
+
     setIsLoading(false);
   };
 
@@ -196,7 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setRole('viewer');
     setUserSegment(null);
-    setAbility(createMongoAbility([]));
+    setAbility(createMongoAbility([]) as any);
     localStorage.removeItem('platform_admin_user');
     localStorage.removeItem('user_role');
     localStorage.removeItem('user_segment');

@@ -1063,13 +1063,13 @@ export const ContentManagementPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 mb-2">
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
           <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 text-center sm:text-left">
-            Content Management
+            Media Management
           </h1>
           <div className="relative group hidden sm:block">
             <InfoIcon className="w-5 h-5 text-gray-400 cursor-help" />
             <div className="absolute left-0 top-full mt-2 w-72 bg-white p-3 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
               <p className="text-sm text-gray-700">
-                View, review, and manage all content across the platform —
+                View, review, and manage media content across the platform —
                 including articles, resources, and media assets.
               </p>
             </div>

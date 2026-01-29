@@ -24,6 +24,7 @@ interface Course {
   rating: number;
   review_count: number;
   image_url: string;
+  excerpt: string;
   faq: any;
   created_at?: string;
   updated_at?: string;
@@ -177,11 +178,10 @@ export const CoursesSection: React.FC = () => {
                   <td className="px-4 py-3 text-sm text-gray-700">{course.category}</td>
                   <td className="px-4 py-3 text-sm text-gray-700">{course.duration} min</td>
                   <td className="px-4 py-3">
-                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                      course.status === 'published' ? 'bg-green-100 text-green-800' :
-                      course.status === 'draft' ? 'bg-gray-100 text-gray-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}>
+                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${course.status === 'published' ? 'bg-green-100 text-green-800' :
+                        course.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                          'bg-yellow-100 text-yellow-800'
+                      }`}>
                       {course.status}
                     </span>
                   </td>

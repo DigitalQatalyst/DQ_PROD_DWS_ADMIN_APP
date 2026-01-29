@@ -110,8 +110,40 @@ export const RolePermissions = {
   viewer: {
     can: [['read', 'all']],
     cannot: [
-      ['create', 'update', 'delete', 'approve', 'publish', 'archive', 'flag'], 
+      ['create', 'update', 'delete', 'approve', 'publish', 'archive', 'flag'],
       'all'
+    ]
+  },
+  hr: {
+    can: [
+      ['read', 'Service'],
+      ['update', 'Service']
+    ],
+    cannot: [
+      ['manage', 'all'],
+      ['create', 'all'],
+      ['delete', 'all'],
+      ['approve', 'all'],
+      ['read', 'Content'],
+      ['read', 'Business'],
+      ['read', 'Zone'],
+      ['read', 'GrowthArea']
+    ]
+  },
+  content: {
+    can: [
+      ['read', 'Content'],
+      ['update', 'Content']
+    ],
+    cannot: [
+      ['manage', 'all'],
+      ['create', 'all'],
+      ['delete', 'all'],
+      ['approve', 'all'],
+      ['read', 'Service'],
+      ['read', 'Business'],
+      ['read', 'Zone'],
+      ['read', 'GrowthArea']
     ]
   }
 } as const;

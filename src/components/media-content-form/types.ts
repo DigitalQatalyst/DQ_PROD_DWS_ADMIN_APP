@@ -46,6 +46,7 @@ export interface ToolkitAttachment {
 export interface MediaFormData {
   title: string;
   slug: string;
+  status: string;
   activeTab: TabKey;
   summary: string;
   content: string;
@@ -78,9 +79,18 @@ export interface MediaFormData {
   toolkitFileType: string;
   toolkitAttachments: ToolkitAttachment[];
   toolkitAuthors: ToolkitAuthor[];
+  // Guide specific fields
+  guide_type: string;
+  function_area: string;
+  complexity_level: string;
+  sub_domain: string;
+  unit: string;
+  location: string;
+  isEditorsPick: boolean;
+  downloadCount: number;
 }
 
-export interface ValidationErrors extends Record<string, string> {}
+export interface ValidationErrors extends Record<string, string> { }
 
 export interface UploadState {
   uploadedUrl: string;

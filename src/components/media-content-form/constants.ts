@@ -39,6 +39,7 @@ export const TAB_TO_MEDIA_TYPE: Record<TabKey, KHMediaType> = {
 export const INITIAL_FORM_DATA: MediaFormData = {
   title: '',
   slug: '',
+  status: 'Draft',
   activeTab: 'Article',
   summary: '',
   content: '',
@@ -71,5 +72,13 @@ export const INITIAL_FORM_DATA: MediaFormData = {
   toolkitFileType: '',
   toolkitAttachments: [],
   toolkitAuthors: [],
+  guide_type: '',
+  function_area: '',
+  complexity_level: '',
+  sub_domain: '',
+  unit: '',
+  location: '',
+  isEditorsPick: false,
+  downloadCount: 0,
 };
 
