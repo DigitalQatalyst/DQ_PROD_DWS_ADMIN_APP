@@ -1,61 +1,56 @@
 import React, { useState } from 'react';
 import { MenuIcon, XIcon, ChevronDownIcon, ChevronRightIcon, LogOutIcon } from 'lucide-react';
-import { BuildingIcon, CreditCardIcon, NewspaperIcon, UsersIcon, GraduationCapIcon, TrendingUpIcon, CalendarIcon, SparklesIcon } from 'lucide-react';
+import { BuildingIcon, NewspaperIcon, UsersIcon, GraduationCapIcon, CalendarIcon, SparklesIcon } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 interface MobileDrawerProps {
   isCompact?: boolean;
   onSignIn: () => void;
   isSignedIn: boolean;
 }
-const marketplaces = [{
-  id: 'non-financial',
-  name: 'Non-Financial Marketplace',
-  description: 'Business registration, legal advisory, tax, compliance, and SME support services',
-  icon: BuildingIcon,
-  href: '/marketplace/non-financial'
-}, {
-  id: 'finance',
-  name: 'Finance Marketplace',
-  description: 'Funding options, grants, and financial services to help SMEs manage and grow',
-  icon: CreditCardIcon,
-  href: '/marketplace/finance'
-}, {
-  id: 'media',
-  name: 'Media Marketplace',
-  description: "News, articles, and updates on Abu Dhabi's business landscape with industry insights",
-  icon: NewspaperIcon,
-  href: '/marketplace/media'
-}, {
-  id: 'community',
-  name: 'Community Marketplace',
-  description: 'Industry communities for networking, collaboration, and sharing best practices',
-  icon: UsersIcon,
-  href: '/marketplace/community'
-}, {
-  id: 'course',
-  name: 'Course Marketplace',
-  description: 'Training and educational modules to build entrepreneurship skills and enhance businesses',
-  icon: GraduationCapIcon,
-  href: '/marketplace/courses'
-}, {
-  id: 'investment',
-  name: 'Investment Marketplace',
-  description: 'Access to venture capital, crowdfunding, and grants for SME growth',
-  icon: TrendingUpIcon,
-  href: '/marketplace/investment'
-}, {
-  id: 'calendar',
-  name: 'Calendar Marketplace',
-  description: 'Event management, matchmaking, and notifications for upcoming business events',
-  icon: CalendarIcon,
-  href: '/marketplace/calendar'
-}, {
-  id: 'opportunity',
-  name: 'Opportunity Marketplace',
-  description: 'Business opportunities, partnerships, and growth prospects for SMEs',
-  icon: SparklesIcon,
-  href: '/marketplace/opportunities'
-}];
+const marketplaces = [
+  {
+    id: 'learning-center',
+    name: 'DQ Learning Center',
+    description: 'Explore LMS courses, onboarding tracks, and learning resources across GHC and 6xD.',
+    icon: GraduationCapIcon,
+    href: '/marketplace/courses'
+  },
+  {
+    id: 'services-center',
+    name: 'DQ Services Center',
+    description: 'Business services, technology services, and digital worker tools.',
+    icon: BuildingIcon,
+    href: '/marketplace/non-financial'
+  },
+  {
+    id: 'work-center',
+    name: 'DQ Work Center',
+    description: 'Daily sessions, project work, and execution trackers.',
+    icon: CalendarIcon,
+    href: '/marketplace/calendar'
+  },
+  {
+    id: 'work-directory',
+    name: 'DQ Work Directory',
+    description: 'Units, positions, and associate profiles.',
+    icon: UsersIcon,
+    href: '/marketplace/community'
+  },
+  {
+    id: 'media-center',
+    name: 'DQ Media Center',
+    description: 'View DQ updates, corporate news, blogs, job openings, and essential announcements.',
+    icon: NewspaperIcon,
+    href: '/marketplace/media'
+  },
+  {
+    id: 'work-communities',
+    name: 'DQ Work Communities',
+    description: 'Discussion rooms, pulse updates, and events.',
+    icon: SparklesIcon,
+    href: '/marketplace/opportunities'
+  }
+];
 export function MobileDrawer({
   isCompact = false,
   onSignIn,
@@ -126,15 +121,15 @@ export function MobileDrawer({
               {/* Explore Accordion */}
               <div className="mb-1">
                 <button className="w-full flex items-center justify-between px-3 py-2.5 text-left text-gray-800 hover:bg-gray-100 rounded-lg transition-colors text-sm font-medium tracking-tight md:text-[13px] sm:text-xs md:py-2 sm:py-1.5" onClick={() => setIsExploreExpanded(!isExploreExpanded)} aria-expanded={isExploreExpanded}>
-                  <span>Explore Marketplaces</span>
+                  <span>Explore Ecosystem</span>
                   <ChevronDownIcon size={14} className={`text-gray-500 transition-transform md:w-3 md:h-3 sm:w-3 sm:h-3 ${isExploreExpanded ? 'rotate-180' : ''}`} />
                 </button>
                 {isExploreExpanded && <div className="mt-1 ml-3 space-y-0.5">
                   {marketplaces.map(marketplace => {
                     const Icon = marketplace.icon;
-                    return <button key={marketplace.id} className="w-full flex items-start px-2.5 py-2 text-left hover:bg-gray-50 rounded-lg transition-colors md:py-1.5 sm:py-1" onClick={() => handleMarketplaceClick(marketplace.href)}>
+                    return <button key={marketplace.id} className="w-full flex items-start px-2.5 py-2 text-left hover:bg-red-50 rounded-lg transition-colors md:py-1.5 sm:py-1" onClick={() => handleMarketplaceClick(marketplace.href)}>
                       <div className="flex-shrink-0 mt-0.5">
-                        <Icon size={14} className="text-teal-600 md:w-3 md:h-3 sm:w-3 sm:h-3" />
+                        <Icon size={14} className="text-[#FF6B6B] md:w-3 md:h-3 sm:w-3 sm:h-3" />
                       </div>
                       <div className="ml-2.5 flex-1 min-w-0">
                         <p className="text-[13px] font-medium text-gray-900 truncate leading-tight md:text-xs sm:text-[11px]">

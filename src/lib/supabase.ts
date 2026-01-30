@@ -25,6 +25,11 @@ export const supabaseAdmin = supabaseServiceKey
             persistSession: false
         }
     })
-    : supabase;
+    : (() => {
+        if (import.meta.env.PROD) {
+            console.warn('⚠️ Supabase Service Role Key is missing in production. Administrative features like User Management will fail.');
+        }
+        return supabase;
+    })();
 
 export const auth = supabase.auth;
