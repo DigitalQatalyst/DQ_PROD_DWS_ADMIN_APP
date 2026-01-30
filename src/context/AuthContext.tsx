@@ -91,16 +91,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       handleSession(session);
+
+      // If it's a password recovery or invite, redirect to reset-password
+      if (event === 'PASSWORD_RECOVERY') {
+        window.location.href = '/reset-password';
+      }
     });
+
+    // Check URL hash for type=invite or type=recovery
+    const hash = window.location.hash;
+    if (hash && (hash.includes('type=invite') || hash.includes('type=recovery'))) {
+      // Supabase will handle the session, we just need to make sure 
+      // the user ends up on the right page if they are authed via the link
+      setTimeout(() => {
+        if (window.location.pathname !== '/reset-password') {
+          window.location.href = '/reset-password';
+        }
+      }, 500);
+    }
 
     return () => subscription.unsubscribe();
   }, [handleSession]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });

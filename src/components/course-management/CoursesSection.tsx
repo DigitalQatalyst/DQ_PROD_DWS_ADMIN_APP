@@ -97,7 +97,7 @@ export const CoursesSection: React.FC = () => {
     return (
       <div className="bg-white rounded-xl shadow-sm p-6">
         <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A2E6E] mx-auto"></div>
           <p className="mt-2 text-gray-600">Loading courses...</p>
         </div>
       </div>
@@ -116,7 +116,7 @@ export const CoursesSection: React.FC = () => {
           </div>
           <button
             onClick={() => navigate('/course-management/course/new')}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md flex items-center text-sm font-medium"
+            className="px-4 py-2 bg-[#1A2E6E] hover:bg-[#030F35] text-white rounded-md flex items-center text-sm font-medium transition-colors"
           >
             <PlusIcon className="h-4 w-4 mr-2" />
             Add Course
@@ -131,7 +131,7 @@ export const CoursesSection: React.FC = () => {
           </div>
           <input
             type="text"
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-[#1A2E6E] focus:border-[#1A2E6E] sm:text-sm"
             placeholder="Search courses..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -179,8 +179,8 @@ export const CoursesSection: React.FC = () => {
                   <td className="px-4 py-3 text-sm text-gray-700">{course.duration} min</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${course.status === 'published' ? 'bg-green-100 text-green-800' :
-                        course.status === 'draft' ? 'bg-gray-100 text-gray-800' :
-                          'bg-yellow-100 text-yellow-800'
+                      course.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                        'bg-yellow-100 text-yellow-800'
                       }`}>
                       {course.status}
                     </span>
@@ -189,7 +189,7 @@ export const CoursesSection: React.FC = () => {
                     <div className="flex items-center justify-end space-x-2">
                       <button
                         onClick={() => navigate(`/course-management/course/${course.id}`)}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-[#1A2E6E] hover:text-[#030F35]"
                         title="Edit"
                       >
                         <EditIcon className="h-4 w-4" />

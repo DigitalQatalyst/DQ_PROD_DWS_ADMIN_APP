@@ -30,7 +30,7 @@ export const QuizzesSection: React.FC = () => {
   const loadCourses = async () => {
     const supabase = getSupabaseClient();
     if (!supabase) return;
-    
+
     const { data } = await supabase.from('lms_courses').select('id, title');
     if (data) setCourses(data);
   };
@@ -95,7 +95,7 @@ export const QuizzesSection: React.FC = () => {
     return (
       <div className="bg-white rounded-xl shadow-sm p-6">
         <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A2E6E] mx-auto"></div>
           <p className="mt-2 text-gray-600">Loading quizzes...</p>
         </div>
       </div>
@@ -114,7 +114,7 @@ export const QuizzesSection: React.FC = () => {
           </div>
           <button
             onClick={() => navigate('/course-management/quiz/new')}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md flex items-center text-sm font-medium"
+            className="px-4 py-2 bg-[#1A2E6E] hover:bg-[#030F35] text-white rounded-md flex items-center text-sm font-medium transition-colors"
           >
             <PlusIcon className="h-4 w-4 mr-2" />
             Add Quiz
@@ -129,7 +129,7 @@ export const QuizzesSection: React.FC = () => {
           </div>
           <input
             type="text"
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-[#1A2E6E] focus:border-[#1A2E6E] sm:text-sm"
             placeholder="Search quizzes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -166,7 +166,7 @@ export const QuizzesSection: React.FC = () => {
                     <div className="flex items-center justify-end space-x-2">
                       <button
                         onClick={() => navigate(`/course-management/quiz/${quiz.id}`)}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-[#1A2E6E] hover:text-[#030F35]"
                         title="Edit"
                       >
                         <EditIcon className="h-4 w-4" />

@@ -101,7 +101,7 @@ export const LessonsSection: React.FC = () => {
     return (
       <div className="bg-white rounded-xl shadow-sm p-6">
         <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A2E6E] mx-auto"></div>
           <p className="mt-2 text-gray-600">Loading lessons...</p>
         </div>
       </div>
@@ -120,7 +120,7 @@ export const LessonsSection: React.FC = () => {
           </div>
           <button
             onClick={() => navigate('/course-management/lesson/new')}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md flex items-center text-sm font-medium"
+            className="px-4 py-2 bg-[#1A2E6E] hover:bg-[#030F35] text-white rounded-md flex items-center text-sm font-medium transition-colors"
           >
             <PlusIcon className="h-4 w-4 mr-2" />
             Add Lesson
@@ -135,7 +135,7 @@ export const LessonsSection: React.FC = () => {
           </div>
           <input
             type="text"
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-[#1A2E6E] focus:border-[#1A2E6E] sm:text-sm"
             placeholder="Search lessons..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -171,7 +171,7 @@ export const LessonsSection: React.FC = () => {
                   <td className="px-4 py-3 text-sm text-gray-700">{lesson.item_order}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${lesson.lesson_type === 'quiz' ? 'bg-green-100 text-green-800' :
-                        lesson.video_url ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                      lesson.video_url ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
                       }`}>
                       {lesson.lesson_type === 'quiz' ? 'Quiz' : lesson.video_url ? 'Video' : 'Content'}
                     </span>
@@ -180,7 +180,7 @@ export const LessonsSection: React.FC = () => {
                     <div className="flex items-center justify-end space-x-2">
                       <button
                         onClick={() => navigate(`/course-management/lesson/${lesson.id}`)}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-[#1A2E6E] hover:text-[#030F35]"
                         title="Edit"
                       >
                         <EditIcon className="h-4 w-4" />

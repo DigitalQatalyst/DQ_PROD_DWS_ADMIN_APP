@@ -14,8 +14,16 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRoles = [],
   fallbackPath = '/login'
 }) => {
-  const { isAuthenticated, user, canAccess } = useAuth();
+  const { isAuthenticated, user, isLoading } = useAuth();
   const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-10 h-10 border-4 border-[#1A2E6E]/30 border-t-[#1A2E6E] rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   // Show loading state while checking authentication
   if (!isAuthenticated) {

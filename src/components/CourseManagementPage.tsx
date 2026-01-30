@@ -23,7 +23,7 @@ const tabs: Tab[] = [
 
 export const CourseManagementPage: React.FC = () => {
   const navigate = useNavigate();
-  
+
   // Get tab from URL params or default to learning-paths
   const urlParams = new URLSearchParams(window.location.search);
   const tabFromUrl = urlParams.get('tab') || 'learning-paths';
@@ -89,7 +89,7 @@ export const CourseManagementPage: React.FC = () => {
             </p>
           </div>
           <button
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-sm flex items-center justify-center text-sm font-medium"
+            className="px-4 py-2 bg-[#1A2E6E] hover:bg-[#030F35] text-white rounded-md shadow-sm flex items-center justify-center text-sm font-medium transition-colors"
             onClick={handleAddNew}
           >
             <PlusIcon className="h-4 w-4 mr-1" />
@@ -108,11 +108,10 @@ export const CourseManagementPage: React.FC = () => {
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`flex items-center px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${
-                  isActive
-                    ? 'bg-blue-600 text-white'
+                className={`flex items-center px-4 py-2 rounded-lg transition-colors whitespace-nowrap ${isActive
+                    ? 'bg-[#1A2E6E] text-white shadow-sm'
                     : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                  }`}
               >
                 <Icon className="h-4 w-4 mr-2" />
                 <span className="text-sm font-medium">{tab.title}</span>

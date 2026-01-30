@@ -289,7 +289,6 @@ interface UseMediaContentFormControllerReturn {
   isEditing: boolean;
   formData: MediaFormData;
   setFormData: React.Dispatch<React.SetStateAction<MediaFormData>>;
-  editorJson: any;
   editorHtml: string;
   setEditorState: (json: any, html: string) => void;
   resetEditorState: (html: string) => void;
@@ -392,6 +391,9 @@ export const useMediaContentFormController = ({
   const podcastFileInputRef = useRef<HTMLInputElement>(null);
   const docFileInputRef = useRef<HTMLInputElement>(null);
   const thumbnailFileInputRef = useRef<HTMLInputElement>(null);
+  const hasFetchedRef = useRef(false);
+  const prevRouteContentIdRef = useRef<string | undefined>(undefined);
+  const draftRestoredRef = useRef(false);
 
   const handleThumbnailUpload = useCallback(
     async (file: File | null | undefined) => {
@@ -833,7 +835,7 @@ export const useMediaContentFormController = ({
   }, []);
 
   useEffect(() => {
-    if (isEditing) return;
+    if (isEditing || draftRestoredRef.current) return;
     const stateContent = (location.state as any)?.content;
     if (stateContent) return;
     const draft = loadDraft();
@@ -850,6 +852,7 @@ export const useMediaContentFormController = ({
     if (typeof draft.thumbnailUploadedUrl === 'string')
       setThumbnailUpload((prev) => ({ ...prev, uploadedUrl: draft.thumbnailUploadedUrl }));
     setDraftRestored(true);
+    draftRestoredRef.current = true;
   }, [isEditing, location.state]);
 
   useEffect(() => {
@@ -1258,20 +1261,27 @@ export const useMediaContentFormController = ({
 
   useEffect(() => {
     const stateContent = (location.state as any)?.content;
-    if (routeContentId) {
+
+    // Reset fetch ref if routeContentId changes
+    if (prevRouteContentIdRef.current !== routeContentId) {
+      hasFetchedRef.current = false;
+      prevRouteContentIdRef.current = routeContentId;
+    }
+
+    if (routeContentId && !hasFetchedRef.current) {
       (async () => {
+        hasFetchedRef.current = true;
         const record = await getById(routeContentId);
         if (record) {
           await fetchAndPrefill(record);
         } else if (stateContent) {
           await fetchAndPrefill(stateContent);
         } else {
-          // If not found in primary DB (likely a guide), still call fetchAndPrefill
-          // It has its own logic to try the secondary DB if routeContentId is present
           await fetchAndPrefill({ id: routeContentId });
         }
       })();
-    } else if (stateContent) {
+    } else if (stateContent && !routeContentId && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
       fetchAndPrefill(stateContent);
     }
   }, [fetchAndPrefill, getById, location.pathname, routeContentId]);
@@ -1893,7 +1903,6 @@ export const useMediaContentFormController = ({
     isEditing,
     formData,
     setFormData,
-    editorJson,
     editorHtml,
     setEditorState,
     resetEditorState,

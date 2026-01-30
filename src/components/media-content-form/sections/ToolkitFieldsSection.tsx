@@ -30,7 +30,6 @@ import { ArticleEditorSection } from './ArticleEditorSection';
 interface ToolkitFieldsSectionProps {
   formData: MediaFormData;
   errors: ValidationErrors;
-  editorJson: any;
   editorHtml: string;
   onEditorChange: (json: any, html: string) => void;
   onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
@@ -94,7 +93,6 @@ const deriveFileTypeFromUrl = (url: string): string => {
 export const ToolkitFieldsSection: FC<ToolkitFieldsSectionProps> = ({
   formData,
   errors,
-  editorJson,
   editorHtml,
   onEditorChange,
   onChange,
@@ -306,12 +304,12 @@ export const ToolkitFieldsSection: FC<ToolkitFieldsSectionProps> = ({
         formData.toolkitAttachments.map((item) =>
           item.id === id
             ? {
-                ...item,
-                url: publicUrl,
-                fileType,
-                fileSizeMb: sizeMb,
-                name: item.name || file.name,
-              }
+              ...item,
+              url: publicUrl,
+              fileType,
+              fileSizeMb: sizeMb,
+              name: item.name || file.name,
+            }
             : item
         )
       );
@@ -354,9 +352,9 @@ export const ToolkitFieldsSection: FC<ToolkitFieldsSectionProps> = ({
       formData.toolkitAuthors.map((author) =>
         author.id === id
           ? {
-              ...author,
-              [field]: value,
-            }
+            ...author,
+            [field]: value,
+          }
           : author
       )
     );
@@ -422,7 +420,7 @@ export const ToolkitFieldsSection: FC<ToolkitFieldsSectionProps> = ({
         } as any);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.downloadUrl]);
 
   return (
@@ -447,7 +445,7 @@ export const ToolkitFieldsSection: FC<ToolkitFieldsSectionProps> = ({
             </button>
           </div>
           <div className="p-6 space-y-6">
-            <ArticleEditorSection editorJson={editorJson} editorHtml={editorHtml} onChange={onEditorChange} errors={errors} />
+            <ArticleEditorSection editorHtml={editorHtml} onChange={onEditorChange} errors={errors} />
 
             <div>
               <h4 className="text-sm font-medium text-gray-800 mb-2">Table of Contents</h4>
@@ -516,7 +514,7 @@ export const ToolkitFieldsSection: FC<ToolkitFieldsSectionProps> = ({
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
-                            onClick={() => moveTocItem(item.id, 'up')}
+                          onClick={() => moveTocItem(item.id, 'up')}
                           className="inline-flex items-center gap-1 text-xs text-gray-600 hover:text-gray-800"
                           disabled={formData.toolkitToc[0]?.id === item.id}
                         >
@@ -525,7 +523,7 @@ export const ToolkitFieldsSection: FC<ToolkitFieldsSectionProps> = ({
                         </button>
                         <button
                           type="button"
-                            onClick={() => moveTocItem(item.id, 'down')}
+                          onClick={() => moveTocItem(item.id, 'down')}
                           className="inline-flex items-center gap-1 text-xs text-gray-600 hover:text-gray-800"
                           disabled={formData.toolkitToc[formData.toolkitToc.length - 1]?.id === item.id}
                         >
@@ -744,7 +742,6 @@ export const ToolkitFieldsSection: FC<ToolkitFieldsSectionProps> = ({
             <label className="block text-sm font-medium text-gray-700">Changelog (optional)</label>
             <div className="mt-1 border border-gray-300 rounded-md">
               <RichTextEditor
-                valueJson={formData.toolkitChangelogJson}
                 valueHtml={formData.toolkitChangelogHtml}
                 onChange={setToolkitChangelog}
                 placeholder="Detail changes introduced in this release..."

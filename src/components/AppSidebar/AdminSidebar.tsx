@@ -66,14 +66,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         path: '/users'
       });
 
-      if (role === 'admin') {
-        items.push({
-          id: 'departments',
-          label: 'Departments',
-          icon: <FolderOpen size={20} />,
-          path: '/departments'
-        });
-      }
     }
 
     // 2. SERVICE REQUESTS
@@ -98,7 +90,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         category: 'category'
       }, {
         id: 'media-management',
-        label: 'Media Management',
+        label: 'Media Center',
         icon: <FileCheck size={20} />,
         path: '/media-management'
       }, {
@@ -173,7 +165,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
               <h2 className="text-slate-900 font-bold text-base leading-tight truncate">
                 {user?.name || 'User'}
               </h2>
-              <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wider mt-0.5 block">
+              <span className="text-[10px] text-[#1A2E6E] font-bold uppercase tracking-wider mt-0.5 block">
                 {roleLabels[role] || role}
               </span>
             </div>
@@ -218,7 +210,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           return (
             <div
               key={item.id}
-              className={`flex items-center mx-3 py-2.5 px-3 rounded-lg relative transition-all duration-200 group ${isActive ? 'bg-blue-600 text-white shadow-md shadow-blue-200' : isDisabled ? 'text-slate-300 cursor-not-allowed' : 'text-slate-600 hover:bg-blue-50 hover:text-blue-600 cursor-pointer'}`}
+              className={`flex items-center mx-3 py-2.5 px-3 rounded-lg relative transition-all duration-200 group ${isActive ? 'bg-[#1A2E6E] text-white shadow-md shadow-slate-200' : isDisabled ? 'text-slate-300 cursor-not-allowed' : 'text-slate-600 hover:bg-slate-50 hover:text-[#1A2E6E] cursor-pointer'}`}
               onClick={() => {
                 if (!isDisabled) {
                   if (item.path) navigate(item.path);
@@ -228,7 +220,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
               onMouseEnter={() => isDisabled && setTooltipItem(item.id)}
               onMouseLeave={() => setTooltipItem(null)}
             >
-              <span className={`w-8 flex items-center justify-center flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-blue-500'}`}>
+              <span className={`w-8 flex items-center justify-center flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-[#1A2E6E]'}`}>
                 {item.icon}
               </span>
               <span className="flex-1 ml-2 font-medium text-sm">{item.label}</span>

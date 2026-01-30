@@ -6,26 +6,32 @@ interface GuideFieldsSectionProps {
     formData: MediaFormData;
     errors: ValidationErrors;
     onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
-    editorJson: any;
     editorHtml: string;
     onEditorChange: (json: any, html: string) => void;
     uploadState: UploadState;
     onUpload: (file: File | null | undefined) => Promise<void>;
     onRemove: () => void;
     fileInputRef: React.RefObject<HTMLInputElement>;
+    thumbnailUpload: UploadState;
+    onThumbnailUpload: (file: File | null | undefined) => Promise<void>;
+    onThumbnailRemove: () => void;
+    thumbnailFileInputRef: React.RefObject<HTMLInputElement>;
 }
 
 export const GuideFieldsSection: React.FC<GuideFieldsSectionProps> = ({
     formData,
     errors,
     onChange,
-    editorJson,
     editorHtml,
     onEditorChange,
     uploadState,
     onUpload,
     onRemove,
     fileInputRef,
+    thumbnailUpload,
+    onThumbnailUpload,
+    onThumbnailRemove,
+    thumbnailFileInputRef,
 }) => {
     const downloadUrl = formData.downloadUrl || uploadState.uploadedUrl;
 
@@ -137,6 +143,67 @@ export const GuideFieldsSection: React.FC<GuideFieldsSectionProps> = ({
                 </label>
             </div>
 
+            {/* Featured Image Section */}
+            <div className="border-t border-gray-100 pt-8">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    Featured Image URL <span className="text-red-500">*</span>
+                </label>
+                <div className="mt-1 flex flex-col md:flex-row items-stretch gap-4">
+                    <div className="flex-1 relative">
+                        <input
+                            id="featuredImage"
+                            name="featuredImage"
+                            value={formData.featuredImage}
+                            onChange={onChange}
+                            placeholder="https://images.unsplash.com/..."
+                            className={`block w-full border rounded-xl py-3 px-4 shadow-sm transition-all ${errors.featuredImage ? 'border-red-500 bg-red-50' : 'border-gray-300'} hover:border-blue-300`}
+                        />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <input
+                            ref={thumbnailFileInputRef}
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={async (event) => {
+                                const file = event.target.files?.[0] || null;
+                                await onThumbnailUpload(file);
+                            }}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => thumbnailFileInputRef.current?.click()}
+                            className="px-6 py-3 bg-white border border-gray-300 hover:border-blue-500 hover:text-blue-600 text-gray-700 rounded-xl text-sm font-semibold transition-all shadow-sm active:scale-95 flex items-center gap-2"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                            Upload Image
+                        </button>
+                    </div>
+                </div>
+                {thumbnailUpload.uploading && (
+                    <div className="mt-3 flex items-center gap-2 text-xs text-blue-600 font-medium animate-pulse">
+                        <div className="h-2 w-2 bg-blue-600 rounded-full"></div>
+                        Uploading image…
+                    </div>
+                )}
+                {thumbnailUpload.uploadedUrl && (
+                    <div className="mt-4 flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 group">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-xs text-blue-700 font-bold uppercase tracking-widest">Asset Uploaded</span>
+                            <span className="text-sm text-blue-600 truncate">{thumbnailUpload.uploadedUrl}</span>
+                        </div>
+                        <button type="button" className="text-xs text-red-600 font-bold hover:text-red-700 px-2 py-1 transition-colors" onClick={onThumbnailRemove}>
+                            Remove
+                        </button>
+                    </div>
+                )}
+                {formData.featuredImage && (
+                    <div className="mt-4 w-full max-w-xs aspect-video rounded-xl overflow-hidden border border-gray-200">
+                        <img src={formData.featuredImage} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                )}
+            </div>
+
             {/* Document Upload Part (similar to DocumentFieldsSection) */}
             <div className="border-t border-gray-100 pt-8">
                 <label className="block text-sm font-semibold text-gray-700 mb-3">
@@ -204,7 +271,6 @@ export const GuideFieldsSection: React.FC<GuideFieldsSectionProps> = ({
                 </div>
                 <div id="content-editor" className={`rounded-xl overflow-hidden transition-all ${errors.content ? 'ring-2 ring-red-500' : 'ring-1 ring-gray-200 shadow-lg'}`}>
                     <RichTextEditor
-                        valueJson={editorJson}
                         valueHtml={editorHtml}
                         onChange={onEditorChange}
                         placeholder="Step-by-step instructions go here…"

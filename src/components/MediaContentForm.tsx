@@ -53,7 +53,6 @@ export const MediaContentForm: React.FC = () => {
   const {
     isEditing,
     formData,
-    editorJson,
     editorHtml,
     setEditorState,
     selectedStages,
@@ -110,7 +109,6 @@ export const MediaContentForm: React.FC = () => {
     setToolkitAttachments,
     setToolkitAuthors,
     setToolkitChangelog,
-    lastSavedContentId,
   } = useMediaContentFormController({ routeContentId, location, navigate });
 
   const isSaving = crudLoading || submitting;
@@ -126,7 +124,6 @@ export const MediaContentForm: React.FC = () => {
     if (['Article', 'News'].includes(formData.activeTab)) {
       return (
         <ArticleEditorSection
-          editorJson={editorJson}
           editorHtml={editorHtml}
           onChange={(json, html) => {
             setEditorState(json, html);
@@ -142,7 +139,6 @@ export const MediaContentForm: React.FC = () => {
           formData={formData}
           errors={errors}
           onChange={handleFieldChange}
-          editorJson={editorJson}
           editorHtml={editorHtml}
           onEditorChange={(json, html) => {
             setEditorState(json, html);
@@ -151,6 +147,10 @@ export const MediaContentForm: React.FC = () => {
           onUpload={handleDocumentUpload}
           onRemove={clearDocumentUpload}
           fileInputRef={docFileInputRef}
+          thumbnailUpload={thumbnailUpload}
+          onThumbnailUpload={handleThumbnailUpload}
+          onThumbnailRemove={clearThumbnailUpload}
+          thumbnailFileInputRef={thumbnailFileInputRef}
         />
       );
     }
@@ -195,7 +195,6 @@ export const MediaContentForm: React.FC = () => {
         <ToolkitFieldsSection
           formData={formData}
           errors={errors}
-          editorJson={editorJson}
           editorHtml={editorHtml}
           onEditorChange={(json, html) => {
             setEditorState(json, html);
@@ -248,22 +247,8 @@ export const MediaContentForm: React.FC = () => {
     handleNavigateBack();
   };
 
-  // Unicode-safe base64 encoding helper
-  // btoa() only supports Latin1, so we need to convert UTF-8 to bytes first
-  const base64Encode = (str: string): string => {
-    try {
-      // Modern approach: use TextEncoder for UTF-8 encoding
-      const utf8Bytes = new TextEncoder().encode(str);
-      let binary = '';
-      utf8Bytes.forEach(byte => {
-        binary += String.fromCharCode(byte);
-      });
-      return btoa(binary);
-    } catch (e) {
-      // Fallback: use encodeURIComponent + unescape (works in all browsers)
-      return btoa(unescape(encodeURIComponent(str)));
-    }
-  };
+
+
 
   // Use controller-provided submit handler which manages submitting state
   // and saves/updates content. This prevents local state mismatches
@@ -297,11 +282,11 @@ export const MediaContentForm: React.FC = () => {
         <div className="max-w-5xl mx-auto">
           <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
-              <nav className="flex mb-4 text-xs font-bold tracking-widest text-blue-600 uppercase" aria-label="Breadcrumb">
+              <nav className="flex mb-4 text-xs font-bold tracking-widest text-[#1A2E6E] uppercase" aria-label="Breadcrumb">
                 <ol className="flex items-center space-x-2">
                   <li><span className="opacity-50">Content Console</span></li>
                   <li><span className="mx-2 opacity-30">/</span></li>
-                  <li className="text-blue-700">Editor</li>
+                  <li className="text-[#030F35]">Editor</li>
                 </ol>
               </nav>
               <h1 className="text-4xl font-black text-slate-900 tracking-tight">
@@ -383,7 +368,7 @@ export const MediaContentForm: React.FC = () => {
               <div className="p-8 border-b border-slate-100 bg-slate-50/30 flex items-center justify-between">
                 <div>
                   <h2 className="text-xl font-extrabold text-slate-800 flex items-center gap-3">
-                    <div className="p-2 bg-blue-600 rounded-xl text-white shadow-lg shadow-blue-200">
+                    <div className="p-2 bg-[#1A2E6E] rounded-xl text-white shadow-lg shadow-slate-200">
                       {tabIcons[formData.activeTab]}
                     </div>
                     {typeLabelMap[formData.activeTab]} Content
@@ -393,7 +378,7 @@ export const MediaContentForm: React.FC = () => {
                 <div className="hidden sm:flex items-center gap-2 text-[10px] font-black tracking-widest text-slate-300 uppercase">
                   <span>Step 04</span>
                   <div className="h-1 w-8 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full w-full bg-blue-500"></div>
+                    <div className="h-full w-full bg-[#1A2E6E]"></div>
                   </div>
                 </div>
               </div>

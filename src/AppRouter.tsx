@@ -22,11 +22,13 @@ import TaxonomyCollectionFormRoute from './pages/taxonomy-collection-form';
 import TaxonomyFacetFormRoute from './pages/taxonomy-facet-form';
 import TaxonomyTagFormRoute from './pages/taxonomy-tag-form';
 import LoginPage from './pages/login';
+import ResetPasswordPage from './pages/ResetPassword';
 import UsersPage from './pages/Users';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { ContentSegmentGate } from './components/ContentSegmentGate';
 import { AppLayout } from './components/AppLayout';
 import EJPTransactionDashboard from './modules/ejp-transaction-dashboard';
+import ComingSoonPage from './pages/ComingSoon';
 
 export function AppRouter() {
   const allStaff = ['admin', 'hr_admin', 'hr_member', 'content_admin', 'content_member'] as const;
@@ -38,6 +40,7 @@ export function AppRouter() {
   return <BrowserRouter>
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       {/* Protected Routes - Require Authentication */}
       <Route path="/" element={
@@ -48,7 +51,12 @@ export function AppRouter() {
 
       <Route path="/service-management" element={
         <ProtectedRoute requiredRoles={[...hrStaff]}>
-          <ServiceManagementRoute />
+          <AppLayout activeSection="service-management">
+            <ComingSoonPage
+              title="Service Management"
+              description="Our comprehensive service request and management system is receiving a major architecture upgrade. Stay tuned for a more powerful enterprise workflow."
+            />
+          </AppLayout>
         </ProtectedRoute>
       } />
 
@@ -247,7 +255,32 @@ export function AppRouter() {
       <Route path="/ejp-transaction-dashboard" element={
         <ProtectedRoute requiredRoles={[...allUsers]}>
           <AppLayout activeSection="experience-analytics">
-            <EJPTransactionDashboard />
+            <ComingSoonPage
+              title="Experience Analytics"
+              description="Unlocking deep insights into your ecosystem's performance. Our advanced transaction and experience dashboard will launch in the next version."
+            />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/activity-logs" element={
+        <ProtectedRoute requiredRoles={[...admins]}>
+          <AppLayout activeSection="activity-logs">
+            <ComingSoonPage
+              title="Activity Logs"
+              description="Trace every action and audit your system's security. This centralized monitoring hub is currently in development."
+            />
+          </AppLayout>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/help-center" element={
+        <ProtectedRoute requiredRoles={[...allUsers]}>
+          <AppLayout activeSection="help-center">
+            <ComingSoonPage
+              title="Help Center"
+              description="We're compiling our knowledge base to provide you with seamless support. Our documentation and support platform is coming soon."
+            />
           </AppLayout>
         </ProtectedRoute>
       } />

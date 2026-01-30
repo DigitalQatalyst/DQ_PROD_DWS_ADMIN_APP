@@ -1,14 +1,13 @@
-import React, { useEffect, useState, Fragment, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ClockIcon, CheckCircleIcon, InfoIcon, SearchIcon, FilterIcon, ChevronDownIcon, ArchiveIcon, CalendarIcon, UserIcon, ChevronLeftIcon, ChevronRightIcon, EyeIcon, DownloadIcon, PlusIcon, EditIcon, AlertCircleIcon } from 'lucide-react';
+import { ClockIcon, CheckCircleIcon, InfoIcon, SearchIcon, ArchiveIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon, EditIcon, AlertCircleIcon } from 'lucide-react';
 import { ServiceDetailsDrawer } from './ServiceDetailsDrawer';
 import { ApproveModal } from './ApproveModal';
 import { RejectModal } from './RejectModal';
 import { SendBackModal } from './SendBackModal';
-import { useCRUD } from '../hooks/useCRUD';
 import { useAuth } from '../context/AuthContext';
 // import { usePermissions } from '../hooks/usePermissions'; // DEPRECATED: Use CASL Can component instead
-import { Service, ExperienceCenterRequest, TechSupportRequest, LeaveRequest, WFHRequest } from '../types';
+import { Service, ExperienceCenterRequest, TechSupportRequest, LeaveRequest } from '../types';
 import { Toast } from './ui/Toast';
 import { Can } from './auth/Can';
 import { supabase2 } from '../lib/supabase2';
@@ -28,7 +27,7 @@ export const ServiceManagementPage: React.FC = () => {
   const [showSendBackModal, setShowSendBackModal] = useState(false);
   const [serviceType, setServiceType] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [sortOrder, setSortOrder] = useState('Newest First');
+  const [sortOrder] = useState('Newest First');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
   const [partnerFilter, setPartnerFilter] = useState('All');
@@ -37,7 +36,7 @@ export const ServiceManagementPage: React.FC = () => {
     endDate: ''
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage] = useState(10);
   const [showDateFilter, setShowDateFilter] = useState(false);
   const [toast, setToast] = useState<{ type: 'success' | 'error' | 'info'; message: string; } | null>(null);
   // Experience Center Requests state
@@ -144,7 +143,7 @@ export const ServiceManagementPage: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1A2E6E] mx-auto mb-4"></div>
           <p className="text-gray-600">Loading authentication...</p>
         </div>
       </div>
@@ -197,8 +196,8 @@ export const ServiceManagementPage: React.FC = () => {
     title: 'Unpublished',
     count: displayServices.filter(service => service.status === 'Unpublished').length,
     icon: InfoIcon,
-    color: 'bg-blue-100 text-blue-600',
-    borderColor: 'border-blue-200'
+    color: 'bg-indigo-100 text-[#1A2E6E]',
+    borderColor: 'border-[#1A2E6E]'
   }, {
     id: 'archived',
     title: 'Archived',
@@ -282,13 +281,6 @@ export const ServiceManagementPage: React.FC = () => {
       url.searchParams.set('serviceId', serviceId);
       url.searchParams.set('view', 'drawer');
       window.history.replaceState({}, '', url.toString());
-    }
-  };
-
-  const handleRowKeyDown = (e: React.KeyboardEvent, serviceId: string) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleRowClick(serviceId);
     }
   };
 
@@ -395,14 +387,8 @@ export const ServiceManagementPage: React.FC = () => {
     window.history.replaceState({}, '', url.toString());
   };
 
-  const uniqueCategories = Array.from(new Set(displayServices.map(service => service.category)));
   const handlePreviousPage = () => setCurrentPage(prev => Math.max(prev - 1, 1));
   const handleNextPage = () => setCurrentPage(prev => Math.min(prev + 1, totalPages));
-  const handlePageChange = (page: number) => setCurrentPage(page);
-  const handleRowsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setRowsPerPage(Number(e.target.value));
-    setCurrentPage(1);
-  };
   const toggleDateFilter = () => setShowDateFilter(!showDateFilter);
   const handleClearFilters = () => {
     setServiceType('All');
@@ -424,7 +410,7 @@ export const ServiceManagementPage: React.FC = () => {
             <p className="text-sm text-gray-500">View, approve, and manage all services.</p>
           </div>
           <Can I="create" a="Service">
-            <button onClick={handleAddNewService} className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+            <button onClick={handleAddNewService} className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#1A2E6E] hover:bg-[#030F35] transition-colors">
               <PlusIcon className="h-4 w-4 mr-1.5" />
               Add New Service
             </button>
@@ -436,14 +422,14 @@ export const ServiceManagementPage: React.FC = () => {
       <div className="flex border-b border-gray-200 mb-6">
         <button
           onClick={() => setActiveTab('marketplace')}
-          className={`px-6 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'marketplace' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+          className={`px-6 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'marketplace' ? 'border-[#1A2E6E] text-[#1A2E6E]' : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
         >
           Marketplace Services
         </button>
         <button
           onClick={() => setActiveTab('experience')}
-          className={`px-6 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'experience' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+          className={`px-6 py-2 text-sm font-medium border-b-2 transition-colors ${activeTab === 'experience' ? 'border-[#1A2E6E] text-[#1A2E6E]' : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
         >
           Experience Center Requests
@@ -485,7 +471,7 @@ export const ServiceManagementPage: React.FC = () => {
 
           <div className="flex overflow-x-auto gap-3 pb-1 scrollbar-hide">
             <select
-              className="bg-white border border-gray-200 rounded-lg py-1.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="bg-white border border-gray-200 rounded-lg py-1.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2E6E]"
               value={serviceType}
               onChange={e => setServiceType(e.target.value)}
             >
@@ -495,7 +481,7 @@ export const ServiceManagementPage: React.FC = () => {
             </select>
 
             <select
-              className="bg-white border border-gray-200 rounded-lg py-1.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="bg-white border border-gray-200 rounded-lg py-1.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#1A2E6E]"
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
             >
@@ -579,7 +565,7 @@ export const ServiceManagementPage: React.FC = () => {
                       <td className="px-4 py-4 text-right">
                         <div className="flex items-center justify-end space-x-2">
                           <Can I="update" a="Service">
-                            <button onClick={e => handleEditService(e, service.id)} className="p-1 text-gray-400 hover:text-blue-600">
+                            <button onClick={e => handleEditService(e, service.id)} className="p-1 text-gray-400 hover:text-[#1A2E6E]">
                               <EditIcon className="h-4 w-4" />
                             </button>
                           </Can>
@@ -612,7 +598,7 @@ export const ServiceManagementPage: React.FC = () => {
                     <tr key={request.id} className="hover:bg-gray-50">
                       <td className="px-4 py-4 text-sm font-mono text-gray-500">{request.id.slice(0, 8)}</td>
                       <td className="px-4 py-4">
-                        <span className={`inline-flex px-2 py-0.5 text-[10px] font-bold rounded-full ${request.request_type === 'Tech Support' ? 'bg-blue-100 text-blue-700' :
+                        <span className={`inline-flex px-2 py-0.5 text-[10px] font-bold rounded-full ${request.request_type === 'Tech Support' ? 'bg-indigo-100 text-[#1A2E6E]' :
                           request.request_type === 'Leave' ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'
                           }`}>
                           {request.request_type}
@@ -665,7 +651,7 @@ export const ServiceManagementPage: React.FC = () => {
           <div className="fixed bottom-6 right-6 z-30">
             <button
               onClick={handleAddNewService}
-              className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-xl transition-all hover:scale-110 active:scale-95"
+              className="bg-[#1A2E6E] hover:bg-[#030F35] text-white rounded-full p-4 shadow-xl transition-all hover:scale-110 active:scale-95"
             >
               <PlusIcon className="h-6 w-6" />
             </button>
@@ -684,7 +670,7 @@ export const ServiceManagementPage: React.FC = () => {
             onReject={() => setShowRejectModal(true)}
             onSendBack={() => setShowSendBackModal(true)}
             onRefresh={fetchMarketplaceServices}
-            showToast={showToast}
+            showToast={(type, message) => showToast(type as any, message)}
           />
           <ApproveModal isOpen={showApproveModal} onClose={() => setShowApproveModal(false)} onConfirm={handleApproveService} listing={selectedService} />
           <RejectModal isOpen={showRejectModal} onClose={() => setShowRejectModal(false)} onConfirm={handleRejectService} listing={selectedService} />
@@ -697,7 +683,7 @@ export const ServiceManagementPage: React.FC = () => {
       {loading && (
         <div className="fixed inset-0 bg-black/20 backdrop-blur-[1px] flex items-center justify-center z-[100]">
           <div className="bg-white p-6 rounded-2xl shadow-2xl flex flex-col items-center">
-            <div className="w-12 h-12 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
+            <div className="w-12 h-12 border-4 border-[#1A2E6E]/20 border-t-[#1A2E6E] rounded-full animate-spin"></div>
             <p className="mt-4 text-gray-600 font-medium">Updating services...</p>
           </div>
         </div>

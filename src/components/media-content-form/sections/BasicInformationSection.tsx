@@ -120,23 +120,25 @@ export const BasicInformationSection: React.FC<BasicInformationSectionProps> = (
       </div>
 
       {/* Summary Block */}
-      <div className="group">
-        <label htmlFor="summary" className="block text-sm font-bold text-slate-700 mb-2 transition-colors group-hover:text-indigo-600">
-          Executive Summary <span className="text-red-500">*</span>
-        </label>
-        <textarea
-          id="summary"
-          name="summary"
-          rows={1}
-          value={formData.summary}
-          onChange={onChange}
-          required
-          placeholder="Brief overview for cards and SEO..."
-          className={`block w-full border rounded-xl shadow-sm py-4 px-4 transition-all outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm font-medium leading-relaxed ${errors.summary ? 'border-red-500 bg-red-50/50' : 'border-slate-200'
-            } min-h-[60px]`}
-        />
-        {errors.summary && <p className="mt-2 text-xs font-bold text-red-500 uppercase tracking-tight">{errors.summary}</p>}
-      </div>
+      {formData.activeTab !== 'Guide' && (
+        <div className="group">
+          <label htmlFor="summary" className="block text-sm font-bold text-slate-700 mb-2 transition-colors group-hover:text-indigo-600">
+            Executive Summary <span className="text-red-500">*</span>
+          </label>
+          <textarea
+            id="summary"
+            name="summary"
+            rows={1}
+            value={formData.summary}
+            onChange={onChange}
+            required
+            placeholder="Brief overview for cards and SEO..."
+            className={`block w-full border rounded-xl shadow-sm py-4 px-4 transition-all outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 text-sm font-medium leading-relaxed ${errors.summary ? 'border-red-500 bg-red-50/50' : 'border-slate-200'
+              } min-h-[60px]`}
+          />
+          {errors.summary && <p className="mt-2 text-xs font-bold text-red-500 uppercase tracking-tight">{errors.summary}</p>}
+        </div>
+      )}
     </div>
   </div>
 );

@@ -21,20 +21,18 @@ const ensureHtml = (content: string): string => {
   if (!content) return ''
   const trimmed = content.trim()
 
-  // If it starts with common HTML tags, assume it's already HTML
-  if (trimmed.startsWith('<p') || trimmed.startsWith('<div') || trimmed.startsWith('<h') || trimmed.startsWith('<ul')) {
+  // If it looks like HTML, return as is
+  if (/^\s*<[a-z][\s\S]*>/i.test(trimmed)) {
     return content
   }
 
-  // Check for common markdown patterns
-  const hasMarkdown = /^#+\s/m.test(content) ||
-    /(\*\*|__)(.*?)\1/.test(content) ||
-    /\[(.*?)\]\((.*?)\)/.test(content) ||
-    /^\s*[-*+]\s/m.test(content) ||
-    /^\s*\d+\.\s/m.test(content)
+  // Check for common markdown patterns (headings, bold, links, lists)
+  const hasMarkdown = /^(#+\s|[-*+]\s|\d+\.\s)/m.test(trimmed) ||
+    /(\*\*|__|_|~|`|\[.+\]\(.+\))/.test(trimmed)
 
   if (hasMarkdown) {
     try {
+      // Use marked to convert markdown to HTML
       return marked.parse(content) as string
     } catch (e) {
       console.error('Failed to parse markdown:', e)
@@ -42,7 +40,12 @@ const ensureHtml = (content: string): string => {
     }
   }
 
-  return content
+  // Fallback: If it's just plain text with newlines, convert to <p> tags
+  if (trimmed.includes('\n')) {
+    return trimmed.split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('')
+  }
+
+  return trimmed ? `<p>${trimmed}</p>` : ''
 }
 
 export default function RichTextEditor({

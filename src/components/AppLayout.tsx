@@ -49,7 +49,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   };
 
   const { user } = useAuth();
-  return <div className="flex flex-col min-h-screen bg-gray-100">
+  return <div className="flex flex-col h-screen overflow-hidden bg-gray-100">
     <Header toggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen}>
       <div className="flex items-center space-x-4">
         <SearchBar />
@@ -57,9 +57,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         <UserProfileDropdown user={user} />
       </div>
     </Header>
-    <div className="flex flex-1">
-      <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} activeSection={activeSection} onSectionChange={handleSectionChange} onboardingComplete={true} companies={companies} onCompanyChange={id => console.log('Company changed:', id)} onAddNewEnterprise={() => console.log('Add new enterprise')} isLoggedIn={true} />
-      <main className="flex-1 overflow-auto">{children}</main>
+    <div className="flex flex-1 overflow-hidden">
+      <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} activeSection={activeSection} onSectionChange={handleSectionChange} onboardingComplete={true} isLoggedIn={true} />
+      <main className="flex-1 overflow-y-auto bg-gray-50">{children}</main>
     </div>
     <Footer isLoggedIn={true} />
     <QuickActionsMenu />

@@ -4,7 +4,8 @@ import {
     SearchIcon, ChevronLeftIcon, ChevronRightIcon,
     PlusIcon, BookIcon, EditIcon, CheckCircleIcon, ClockIcon,
     FileTextIcon, ListIcon, InfoIcon, FilterIcon, ChevronDownIcon,
-    ArchiveIcon, CalendarIcon, EyeIcon, DownloadIcon, XCircleIcon
+    ArchiveIcon, CalendarIcon, EyeIcon, DownloadIcon, XCircleIcon,
+    TrendingUpIcon, BriefcaseIcon
 } from 'lucide-react';
 import { useKnowledgeHub } from '../hooks/useKnowledgeHub';
 import { useAuth } from '../context/AuthContext';
@@ -23,7 +24,7 @@ export const KnowledgeHubManagementPage: React.FC = () => {
 
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('All');
-    const [domainFilter, setDomainFilter] = useState('All');
+    const [domainFilter, setDomainFilter] = useState('guidelines');
     const [sortOrder, setSortOrder] = useState('Newest First');
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -92,7 +93,7 @@ export const KnowledgeHubManagementPage: React.FC = () => {
             title: 'Published',
             count: guideData.filter(g => g.status === 'Published').length,
             icon: ListIcon,
-            color: 'bg-blue-100 text-blue-600',
+            color: 'bg-indigo-100 text-[#1A2E6E]',
             status: 'Published'
         }
     ], [guideData]);
@@ -128,7 +129,7 @@ export const KnowledgeHubManagementPage: React.FC = () => {
     const handleClearFilters = () => {
         setSearchQuery('');
         setStatusFilter('All');
-        setDomainFilter('All');
+        setDomainFilter('guidelines');
         setSortOrder('Newest First');
         setCurrentPage(1);
     };
@@ -163,7 +164,7 @@ export const KnowledgeHubManagementPage: React.FC = () => {
                     <Can I="create" a="Content">
                         <button
                             onClick={handleCreate}
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md shadow-sm flex items-center justify-center text-sm font-medium hidden sm:flex"
+                            className="px-4 py-2 bg-[#1A2E6E] hover:bg-[#030F35] text-white rounded-md shadow-sm flex items-center justify-center text-sm font-medium hidden sm:flex transition-colors"
                         >
                             <PlusIcon className="h-4 w-4 mr-1" />
                             Create New
@@ -173,6 +174,40 @@ export const KnowledgeHubManagementPage: React.FC = () => {
                 <p className="text-sm text-gray-500 text-center sm:text-left">
                     Manage institutional guides and instructional excellence
                 </p>
+
+                {/* Domain Tabs */}
+                <div className="flex border-b border-gray-200 mt-8 mb-4">
+                    <button
+                        onClick={() => setDomainFilter('guidelines')}
+                        className={`px-6 py-3 text-sm font-bold border-b-2 transition-all ${domainFilter === 'guidelines'
+                            ? 'border-[#1A2E6E] text-[#1A2E6E]'
+                            : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <BookIcon className="w-4 h-4" />
+                            Guidelines
+                        </div>
+                    </button>
+                    <button
+                        onClick={() => setDomainFilter('Strategy')}
+                        className={`px-6 py-3 text-sm font-bold border-b-2 transition-all ${domainFilter === 'Strategy'
+                            ? 'border-[#1A2E6E] text-[#1A2E6E]'
+                            : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <TrendingUpIcon className="w-4 h-4" />
+                            Strategy
+                        </div>
+                    </button>
+                    <button
+                        onClick={() => setDomainFilter('All')}
+                        className={`px-6 py-3 text-sm font-bold border-b-2 transition-all ${domainFilter === 'All'
+                            ? 'border-[#1A2E6E] text-[#1A2E6E]'
+                            : 'border-transparent text-gray-400 hover:text-gray-600'}`}
+                    >
+                        View All
+                    </button>
+                </div>
             </div>
 
             {/* Summary Cards */}
@@ -183,7 +218,7 @@ export const KnowledgeHubManagementPage: React.FC = () => {
                         <div
                             key={item.id}
                             onClick={() => setStatusFilter(isActive ? 'All' : item.status)}
-                            className={`rounded-xl shadow-sm border bg-white px-3 py-4 hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer ${isActive ? 'border-blue-300 bg-blue-50' : 'border-gray-100'
+                            className={`rounded-xl shadow-sm border bg-white px-3 py-4 hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer ${isActive ? 'border-[#1A2E6E] bg-slate-50' : 'border-gray-100'
                                 }`}
                         >
                             <div className="flex items-center">
@@ -194,7 +229,7 @@ export const KnowledgeHubManagementPage: React.FC = () => {
                                     <h3 className="text-[13px] text-gray-600 font-medium truncate">
                                         {item.title}
                                     </h3>
-                                    <p className={`text-lg sm:text-xl font-semibold ${isActive ? 'text-blue-900' : 'text-gray-900'}`}>
+                                    <p className={`text-lg sm:text-xl font-semibold ${isActive ? 'text-[#1A2E6E]' : 'text-gray-900'}`}>
                                         {item.count}
                                     </p>
                                 </div>
@@ -214,7 +249,7 @@ export const KnowledgeHubManagementPage: React.FC = () => {
                             </div>
                             <input
                                 type="text"
-                                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm shadow-xs"
+                                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-[#1A2E6E] focus:border-[#1A2E6E] sm:text-sm shadow-xs"
                                 placeholder="Search guides, authors, or topics..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -224,7 +259,7 @@ export const KnowledgeHubManagementPage: React.FC = () => {
                         <div className="flex overflow-x-auto gap-3 px-1 pb-2 scrollbar-hide">
                             <div className="min-w-[140px] relative">
                                 <select
-                                    className="appearance-none w-full bg-white border border-gray-200 rounded-lg py-2 pl-3 pr-8 text-sm leading-5 focus:outline-none focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                                    className="appearance-none w-full bg-white border border-gray-200 rounded-lg py-2 pl-3 pr-8 text-sm leading-5 focus:outline-none focus:ring-[#1A2E6E] focus:border-[#1A2E6E] cursor-pointer"
                                     value={statusFilter}
                                     onChange={(e) => setStatusFilter(e.target.value)}
                                 >
@@ -241,12 +276,14 @@ export const KnowledgeHubManagementPage: React.FC = () => {
 
                             <div className="min-w-[160px] relative">
                                 <select
-                                    className="appearance-none w-full bg-white border border-gray-200 rounded-lg py-2 pl-3 pr-8 text-sm leading-5 focus:outline-none focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                                    className="appearance-none w-full bg-white border border-gray-200 rounded-lg py-2 pl-3 pr-8 text-sm leading-5 focus:outline-none focus:ring-[#1A2E6E] focus:border-[#1A2E6E] cursor-pointer"
                                     value={domainFilter}
                                     onChange={(e) => setDomainFilter(e.target.value)}
                                 >
                                     <option value="All">All Domains</option>
-                                    {domains.map(d => (
+                                    <option value="guidelines">Guidelines</option>
+                                    <option value="Strategy">Strategy</option>
+                                    {domains.filter(d => d !== 'guidelines' && d !== 'Strategy').map(d => (
                                         <option key={d} value={d}>{d}</option>
                                     ))}
                                 </select>
@@ -257,7 +294,7 @@ export const KnowledgeHubManagementPage: React.FC = () => {
 
                             <div className="min-w-[140px] relative">
                                 <select
-                                    className="appearance-none w-full bg-white border border-gray-200 rounded-lg py-2 pl-3 pr-8 text-sm leading-5 focus:outline-none focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                                    className="appearance-none w-full bg-white border border-gray-200 rounded-lg py-2 pl-3 pr-8 text-sm leading-5 focus:outline-none focus:ring-[#1A2E6E] focus:border-[#1A2E6E] cursor-pointer"
                                     value={sortOrder}
                                     onChange={(e) => setSortOrder(e.target.value)}
                                 >
@@ -269,7 +306,7 @@ export const KnowledgeHubManagementPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {(statusFilter !== 'All' || domainFilter !== 'All' || searchQuery !== '' || sortOrder !== 'Newest First') && (
+                            {(statusFilter !== 'All' || domainFilter !== 'guidelines' || searchQuery !== '' || sortOrder !== 'Newest First') && (
                                 <button
                                     onClick={handleClearFilters}
                                     className="flex-shrink-0 h-full inline-flex items-center px-3 py-2 border border-gray-200 rounded-lg bg-white text-sm font-medium text-red-600 hover:bg-red-50 transition-colors duration-150"
@@ -294,7 +331,7 @@ export const KnowledgeHubManagementPage: React.FC = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
-                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Title & Summary</th>
+                                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Title</th>
                                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Author</th>
                                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Domain</th>
                                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
@@ -307,7 +344,7 @@ export const KnowledgeHubManagementPage: React.FC = () => {
                                 <tr>
                                     <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
                                         <div className="flex flex-col items-center">
-                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1A2E6E] mb-2"></div>
                                             <span>Loading guides...</span>
                                         </div>
                                     </td>
@@ -331,12 +368,11 @@ export const KnowledgeHubManagementPage: React.FC = () => {
                                     >
                                         <td className="px-6 py-4">
                                             <div className="flex items-center min-w-[300px]">
-                                                <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
-                                                    <BookIcon className="text-blue-600 w-5 h-5" />
+                                                <div className="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center mr-4 flex-shrink-0 border border-slate-100">
+                                                    <BookIcon className="text-[#1A2E6E] w-5 h-5" />
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="font-semibold text-gray-900 truncate">{guide.title}</p>
-                                                    <p className="text-xs text-gray-500 truncate mt-0.5">{guide.summary || 'No summary provided.'}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -371,7 +407,7 @@ export const KnowledgeHubManagementPage: React.FC = () => {
                                                 <Can I="update" a="Content">
                                                     <button
                                                         onClick={(e) => handleEdit(e, guide.id)}
-                                                        className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                                        className="p-1.5 text-gray-500 hover:text-[#1A2E6E] hover:bg-slate-50 rounded-md transition-colors"
                                                     >
                                                         <EditIcon className="w-4 h-4" />
                                                     </button>
@@ -428,7 +464,6 @@ export const KnowledgeHubManagementPage: React.FC = () => {
                                 {guide.status}
                             </span>
                         </div>
-                        <p className="text-xs text-gray-500 line-clamp-2 mb-3">{guide.summary}</p>
                         <div className="flex justify-between items-end border-t pt-3">
                             <div className="text-[10px] text-gray-400">
                                 <p className="font-bold text-gray-600 uppercase tracking-wider">{guide.author}</p>
@@ -436,9 +471,9 @@ export const KnowledgeHubManagementPage: React.FC = () => {
                             </div>
                             <div className="flex gap-2">
                                 <Can I="update" a="Content">
-                                    <button onClick={(e) => handleEdit(e, guide.id)} className="text-blue-600 text-xs font-bold">Edit</button>
+                                    <button onClick={(e) => handleEdit(e, guide.id)} className="text-[#1A2E6E] text-xs font-bold">Edit</button>
                                 </Can>
-                                <button className="text-blue-600 text-xs font-bold">View</button>
+                                <button className="text-[#1A2E6E] text-xs font-bold">View</button>
                             </div>
                         </div>
                     </div>
@@ -450,7 +485,7 @@ export const KnowledgeHubManagementPage: React.FC = () => {
                 <div className="fixed bottom-16 right-5 sm:bottom-6 sm:right-6 z-30">
                     <button
                         onClick={handleCreate}
-                        className="rounded-full w-14 h-14 bg-blue-600 text-white shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all flex items-center justify-center animate-bounce-slow"
+                        className="rounded-full w-14 h-14 bg-[#1A2E6E] text-white shadow-lg hover:bg-[#030F35] hover:shadow-xl transition-all flex items-center justify-center animate-bounce-slow"
                         aria-label="Create new guide"
                     >
                         <PlusIcon className="h-6 w-6" />

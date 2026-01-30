@@ -415,7 +415,7 @@ export const ContentManagementPage: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1A2E6E] mx-auto mb-4"></div>
           <p className="text-gray-600">Loading authentication...</p>
         </div>
       </div>
@@ -434,7 +434,7 @@ export const ContentManagementPage: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1A2E6E] mx-auto mb-4"></div>
           <p className="text-gray-600">Loading content…</p>
         </div>
       </div>
@@ -468,8 +468,8 @@ export const ContentManagementPage: React.FC = () => {
     title: 'Archived',
     count: displayContent.filter(content => content.status === 'Archived').length,
     icon: ArchiveIcon,
-    color: 'bg-blue-100 text-blue-600',
-    borderColor: 'border-blue-200'
+    color: 'bg-indigo-100 text-[#1A2E6E]',
+    borderColor: 'border-[#1A2E6E]'
   }];
   // Filter and sort content
   const filteredContent = displayContent.filter(content => {
@@ -528,7 +528,7 @@ export const ContentManagementPage: React.FC = () => {
   // Render content type with appropriate styling
   const renderType = (type: string) => {
     const typeStyles: Record<string, string> = {
-      Article: 'bg-blue-100 text-blue-800 border border-blue-200',
+      Article: 'bg-indigo-100 text-[#1A2E6E] border border-indigo-200',
       Video: 'bg-purple-100 text-purple-800 border border-purple-200',
       Guide: 'bg-emerald-100 text-emerald-800 border border-emerald-200',
       Resource: 'bg-indigo-100 text-indigo-800 border border-indigo-200',
@@ -1063,7 +1063,7 @@ export const ContentManagementPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2 mb-2">
         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
           <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 text-center sm:text-left">
-            Media Management
+            Media Center
           </h1>
           <div className="relative group hidden sm:block">
             <InfoIcon className="w-5 h-5 text-gray-400 cursor-help" />
@@ -1078,7 +1078,7 @@ export const ContentManagementPage: React.FC = () => {
         {/* Add button in the header */}
         <Can I="create" a="Content">
           <button
-            className={`px-4 py-2 rounded-md shadow-sm flex items-center justify-center text-sm font-medium hidden sm:flex ${creating ? 'bg-blue-400 cursor-wait' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+            className={`px-4 py-2 rounded-md shadow-sm flex items-center justify-center text-sm font-medium hidden sm:flex transition-colors ${creating ? 'bg-slate-400 cursor-wait' : 'bg-[#1A2E6E] hover:bg-[#030F35] text-white'}`}
             onClick={handleAddNewContent}
             disabled={creating}
           >
@@ -1114,7 +1114,7 @@ export const ContentManagementPage: React.FC = () => {
         return <div
           key={item.id}
           onClick={() => setStatusFilter(statusMap[item.id] || 'All')}
-          className={`rounded-xl shadow-sm border bg-white px-3 py-4 hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer ${isActive ? 'border-blue-300 bg-blue-50' : 'border-gray-100'
+          className={`rounded-xl shadow-sm border bg-white px-3 py-4 hover:shadow-md transition-all duration-200 ease-in-out cursor-pointer ${isActive ? 'border-[#1A2E6E] bg-slate-50' : 'border-gray-100'
             }`}
         >
           <div className="flex items-center">
@@ -1125,7 +1125,7 @@ export const ContentManagementPage: React.FC = () => {
               <h3 className="text-[13px] text-gray-600 font-medium">
                 {item.title}
               </h3>
-              <p className={`text-lg sm:text-xl font-semibold ${isActive ? 'text-blue-900' : 'text-gray-900'}`}>
+              <p className={`text-lg sm:text-xl font-semibold ${isActive ? 'text-[#1A2E6E]' : 'text-gray-900'}`}>
                 {item.count}
               </p>
               <p className="text-xs text-gray-400 mt-1">
@@ -1145,12 +1145,12 @@ export const ContentManagementPage: React.FC = () => {
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <SearchIcon className="h-5 w-5 text-gray-400" />
             </div>
-            <input type="text" className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm shadow-xs" placeholder="Search content..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+            <input type="text" className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-[#1A2E6E] focus:border-[#1A2E6E] sm:text-sm shadow-xs" placeholder="Search content..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
           </div>
           {/* Filter Chips */}
           <div className="flex overflow-x-auto gap-3 px-1 pb-2 scrollbar-hide">
             <div className="min-w-[140px] relative">
-              <select className="appearance-none w-full bg-white border border-gray-200 rounded-lg py-2 pl-3 pr-8 text-sm leading-5 focus:outline-none focus:ring-blue-500 focus:border-blue-500" value={contentType} onChange={e => setContentType(e.target.value)}>
+              <select className="appearance-none w-full bg-white border border-gray-200 rounded-lg py-2 pl-3 pr-8 text-sm leading-5 focus:outline-none focus:ring-[#1A2E6E] focus:border-[#1A2E6E]" value={contentType} onChange={e => setContentType(e.target.value)}>
                 <option value="All">All Types</option>
                 {uniqueTypes.map(type => <option key={type} value={type}>
                   {type}
@@ -1161,7 +1161,7 @@ export const ContentManagementPage: React.FC = () => {
               </div>
             </div>
             <div className="min-w-[140px] relative">
-              <select className="appearance-none w-full bg-white border border-gray-200 rounded-lg py-2 pl-3 pr-8 text-sm leading-5 focus:outline-none focus:ring-blue-500 focus:border-blue-500" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+              <select className="appearance-none w-full bg-white border border-gray-200 rounded-lg py-2 pl-3 pr-8 text-sm leading-5 focus:outline-none focus:ring-[#1A2E6E] focus:border-[#1A2E6E]" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
                 <option value="All">All Statuses</option>
                 <option value="Draft">Draft</option>
                 <option value="Pending Review">Pending Review</option>
@@ -1173,7 +1173,7 @@ export const ContentManagementPage: React.FC = () => {
               </div>
             </div>
             <div className="min-w-[140px] relative">
-              <select className="appearance-none w-full bg-white border border-gray-200 rounded-lg py-2 pl-3 pr-8 text-sm leading-5 focus:outline-none focus:ring-blue-500 focus:border-blue-500" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
+              <select className="appearance-none w-full bg-white border border-gray-200 rounded-lg py-2 pl-3 pr-8 text-sm leading-5 focus:outline-none focus:ring-[#1A2E6E] focus:border-[#1A2E6E]" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
                 <option value="All">All Categories</option>
                 {uniqueCategories.map(category => <option key={category} value={category}>
                   {category}
@@ -1184,7 +1184,7 @@ export const ContentManagementPage: React.FC = () => {
               </div>
             </div>
             <div className="min-w-[140px] relative">
-              <select className="appearance-none w-full bg-white border border-gray-200 rounded-lg py-2 pl-3 pr-8 text-sm leading-5 focus:outline-none focus:ring-blue-500 focus:border-blue-500" value={sortOrder} onChange={e => setSortOrder(e.target.value)}>
+              <select className="appearance-none w-full bg-white border border-gray-200 rounded-lg py-2 pl-3 pr-8 text-sm leading-5 focus:outline-none focus:ring-[#1A2E6E] focus:border-[#1A2E6E]" value={sortOrder} onChange={e => setSortOrder(e.target.value)}>
                 <option value="Newest First">Newest First</option>
                 <option value="Oldest First">Oldest First</option>
               </select>
@@ -1252,7 +1252,7 @@ export const ContentManagementPage: React.FC = () => {
             }}>
               Clear Dates
             </button>
-            <button className="px-3 py-1.5 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors duration-150" onClick={toggleDateFilter}>
+            <button className="px-3 py-1.5 bg-[#1A2E6E] text-white rounded-md text-sm hover:bg-[#030F35] transition-colors duration-150" onClick={toggleDateFilter}>
               Apply
             </button>
           </div>
@@ -1332,7 +1332,7 @@ export const ContentManagementPage: React.FC = () => {
               <td className="px-4 py-3 text-[13px] text-right text-gray-500">
                 <div className="flex items-center justify-end space-x-2">
                   <Can I="update" a="Content">
-                    <button onClick={e => handleEditContent(e, content.id)} className="p-1 text-gray-500 hover:text-blue-600 transition-colors" aria-label="Edit content">
+                    <button onClick={e => handleEditContent(e, content.id)} className="p-1 text-gray-400 hover:text-[#1A2E6E] transition-colors" aria-label="Edit content">
                       <EditIcon className="h-4 w-4" />
                     </button>
                   </Can>
@@ -1391,11 +1391,11 @@ export const ContentManagementPage: React.FC = () => {
               <button onClick={e => {
                 e.stopPropagation();
                 handleEditContent(e, content.id);
-              }} className="text-blue-600 text-[12px] font-medium flex items-center">
+              }} className="text-[#1A2E6E] text-[12px] font-medium flex items-center">
                 Edit
               </button>
             </Can>
-            <button className="text-blue-600 text-[12px] font-medium flex items-center">
+            <button className="text-[#1A2E6E] text-[12px] font-medium flex items-center">
               View
               <ChevronRightIcon className="w-4 h-4 ml-0.5" />
             </button>
@@ -1409,7 +1409,7 @@ export const ContentManagementPage: React.FC = () => {
         <label htmlFor="rows-per-page" className="text-[12px] sm:text-sm text-gray-600 mr-2">
           Rows per page:
         </label>
-        <select id="rows-per-page" className="border border-gray-300 rounded-md text-[12px] sm:text-sm py-1 px-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500" value={rowsPerPage} onChange={handleRowsPerPageChange}>
+        <select id="rows-per-page" className="border border-gray-300 rounded-md text-[12px] sm:text-sm py-1 px-2 focus:outline-none focus:ring-[#1A2E6E] focus:border-[#1A2E6E]" value={rowsPerPage} onChange={handleRowsPerPageChange}>
           <option value={10}>10</option>
           <option value={25}>25</option>
           <option value={50}>50</option>
@@ -1431,7 +1431,7 @@ export const ContentManagementPage: React.FC = () => {
               {i > 0 && arr[i - 1] !== page - 1 && <span className="px-2 sm:px-3 py-1 sm:py-1.5 text-[12px] sm:text-sm text-gray-500 border-t border-b border-gray-300">
                 ...
               </span>}
-              <button onClick={() => handlePageChange(page)} className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[12px] sm:text-sm border-t border-b border-gray-300 ${currentPage === page ? 'bg-blue-50 text-blue-600 font-medium' : 'hover:bg-gray-50 text-gray-700'} ${i === 0 && page !== 1 ? 'border-l border-gray-300' : ''}`}>
+              <button onClick={() => handlePageChange(page)} className={`px-2 sm:px-3 py-1 sm:py-1.5 text-[12px] sm:text-sm border-t border-b border-gray-300 ${currentPage === page ? 'bg-slate-50 text-[#1A2E6E] font-medium' : 'hover:bg-gray-50 text-gray-700'} ${i === 0 && page !== 1 ? 'border-l border-gray-300' : ''}`}>
                 {page}
               </button>
             </Fragment>)}
@@ -1464,7 +1464,7 @@ export const ContentManagementPage: React.FC = () => {
           Try adjusting your search or filter criteria to find what you're
           looking for.
         </p>
-        <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-150" onClick={handleClearFilters}>
+        <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-[#1A2E6E] hover:bg-[#030F35] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1A2E6E] transition-colors duration-150" onClick={handleClearFilters}>
           Clear All Filters
         </button>
       </div>
@@ -1473,7 +1473,7 @@ export const ContentManagementPage: React.FC = () => {
     <Can I="create" a="Content">
       <div className="fixed bottom-16 right-5 sm:bottom-6 sm:right-6 z-30">
         <button
-          className={`rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-200 ${creating ? 'bg-blue-400 cursor-wait' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+          className={`rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-200 ${creating ? 'bg-slate-400 cursor-wait' : 'bg-[#1A2E6E] hover:bg-[#030F35] text-white'}`}
           aria-label="Add new content"
           onClick={handleAddNewContent}
           disabled={creating}
