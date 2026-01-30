@@ -10,6 +10,7 @@ interface LearningPath {
   title: string;
   provider: string;
   description: string;
+  excerpt: string;
   category: string;
   duration: number;
   level_code: string;
